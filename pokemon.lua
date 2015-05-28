@@ -139,11 +139,22 @@ end
 return text
 end
 
+function text_to_lines(text)
+local lines = {}
+for i = 1, 360, 20 do
+table.insert(lines, text:sub(i, i+19))
+end
+return lines
+end
+
 function read_text()
 local text = get_text()
-text = text:gsub("^%s*(.-)%s*$", "%1")
-if text ~= "" then
-nvda.say(text)
+local lines = text_to_lines(text)
+for i, line in pairs(lines) do
+line = line:gsub("^%s*(.-)%s*$", "%1")
+if line ~= "" then
+nvda.say(line)
+end
 end
 end
 
