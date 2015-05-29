@@ -169,8 +169,7 @@ end
 nvda.say("x " .. x .. ", y " .. y)
 local warps = get_warps()
 for i, warp in ipairs(warps) do
-local dir = direction(x, y, warp.x, warp.y)
-nvda.say(warp.name .. ": " .. dir)
+read_item(warp)
 end
 end
 
@@ -193,7 +192,7 @@ name = warpnames[idx][i]
 else
 name = "Warp " .. i
 end
-table.insert(results, {x=warpx, y=warpy, name=name})
+table.insert(results, {x=warpx, y=warpy, name=name, type="warp"})
 end
 return results
 end
@@ -219,7 +218,7 @@ for i = 1, signposts do
 local posty = memory.gbromreadbyte(ptr)
 local postx = memory.gbromreadbyte(ptr+1)
 name = names[i] or ("signpost " .. i)
-local post = {x=postx, y=posty, name=name}
+local post = {x=postx, y=posty, name=name, type="signpost"}
 table.insert(results, post)
 ptr = ptr + 5 -- point at the next one
 end
@@ -235,8 +234,7 @@ return
 end
 local signposts = get_signposts()
 for i, signpost in ipairs(signposts) do
-local dir = direction(x, y, signpost.x, signpost.y)
-nvda.say(signpost.name .. ": " .. dir)
+read_item(signpost)
 end
 end
 
@@ -298,6 +296,13 @@ read_tiles()
 else
 read_text()
 end
+end
+
+function read_item(item)
+local y = memory.readbyte(0xdcb7)
+local x = memory.readbyte(0xdcb8)
+local dir = direction(x, y, item.x, item.y)
+nvda.say(item.name .. ": " .. dir)
 end
 
 counter = 0
