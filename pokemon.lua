@@ -161,62 +161,93 @@ end
 function read_coords()
 local y = memory.readbyte(0xdcb7)
 local x = memory.readbyte(0xdcb8)
-local mapgroup = memory.readbyte(0xdcb5)
-local mapnumber = memory.readbyte(0xdcb6)
-if mapnumber == 0 and mapgroup == 0 then
+if not on_map() then
 nvda.say("Not on a map")
 return
 end
 
 nvda.say("x " .. x .. ", y " .. y)
+local warps = get_warps()
+for i, warp in ipairs(warps) do
+local dir = direction(x, y, warp.x, warp.y)
+nvda.say(warp.name .. ": " .. dir)
+end
+end
+
+function get_warps()
+local mapgroup = memory.readbyte(0xdcb5)
+local mapnumber = memory.readbyte(0xdcb6)
 local eventstart = memory.readword(0xd1a6)
 local bank = memory.readbyte(0xd1a3)
 eventstart = (bank*16384) + (eventstart - 16384)
 local warps = memory.gbromreadbyte(eventstart+2)
-nvda.say(warps .. " warps")
+local results = {}
 local warp_table_start = eventstart+3
 for i = 1, warps do
 local start = warp_table_start+(5*(i-1))
 local warpy = memory.gbromreadbyte(start)
 local warpx = memory.gbromreadbyte(start+1)
-local warpdir = direction(x, y, warpx, warpy)
-nvda.say("warp " .. i .. " " .. warpdir)
+local idx = (mapgroup*256)+mapnumber
+if warpnames[idx] and warpnames[idx][i] ~= nil then
+name = warpnames[idx][i]
+else
+name = "Warp " .. i
 end
+table.insert(results, {x=warpx, y=warpy, name=name})
+end
+return results
 end
 
-function read_signposts()
-local y = memory.readbyte(0xdcb7)
-local x = memory.readbyte(0xdcb8)
+function get_signposts()
 local eventstart = memory.readword(0xd1a6)
 local bank = memory.readbyte(0xd1a3)
 local mapgroup = memory.readbyte(0xdcb5)
 local mapnumber = memory.readbyte(0xdcb6)
-if mapnumber == 0 and mapgroup == 0 then
-nvda.say("Not on a map")
-return
-end
 names = postnames[(mapgroup*256)+mapnumber] or {}
-print("bank " .. bank .. "eventstart " .. eventstart)
 eventstart = (bank*16384) + (eventstart - 16384)
-print("new eventstart " .. eventstart)
 local warps = memory.gbromreadbyte(eventstart+2)
 local ptr = eventstart + 3 -- start of warp table
 ptr = ptr + (warps * 5) -- skip them
 -- skip the xy triggers too
 local xt = memory.gbromreadbyte(ptr)
-print(xt .. " xt")
 ptr = ptr + (xt * 8)+1
 local signposts = memory.gbromreadbyte(ptr)
-nvda.say(signposts .. " signposts")
 ptr = ptr + 1
 -- read out the signposts
+local results = {}
 for i = 1, signposts do
 local posty = memory.gbromreadbyte(ptr)
 local postx = memory.gbromreadbyte(ptr+1)
-local dir = direction(x, y, postx, posty)
 name = names[i] or ("signpost " .. i)
-nvda.say(name .. ": " .. dir)
+local post = {x=postx, y=posty, name=name}
+table.insert(results, post)
 ptr = ptr + 5 -- point at the next one
+end
+return results
+end
+
+function read_signposts()
+local y = memory.readbyte(0xdcb7)
+local x = memory.readbyte(0xdcb8)
+if not on_map() then
+nvda.say("Not on a map")
+return
+end
+local signposts = get_signposts()
+for i, signpost in ipairs(signposts) do
+local dir = direction(x, y, signpost.x, signpost.y)
+nvda.say(signpost.name .. ": " .. dir)
+end
+end
+
+-- Returns true or false indicating whether we're on a map or not.
+function on_map()
+local mapgroup = memory.readbyte(0xdcb5)
+local mapnumber = memory.readbyte(0xdcb6)
+if mapnumber == 0 and mapgroup == 0 then
+return false
+else
+return true
 end
 end
 

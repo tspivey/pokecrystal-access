@@ -14,3 +14,7 @@ postnames[0x1805] = {
 [13] = "Bookshelf";
 [15] = "Window";
 }
+warpnames = {}
+warpnames[0x1804] = {
+[1] = "Elm's lab";
+}
