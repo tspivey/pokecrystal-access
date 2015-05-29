@@ -1,16 +1,8 @@
 #ifwinactive ahk_exe vba.exe
-f1::
-fileAppend, , %a_scriptdir%\flag
-return
-f2::
-fileAppend, coords, %a_scriptdir%\flag
-return
-f3::
-fileAppend, signposts, %a_scriptdir%\flag
-return
-f4::
-fileAppend, tiles, %a_scriptdir%\flag
-return
+f1::flagwrite("")
+f2::flagwrite("coords")
+f3::flagwrite("signposts")
+f4::flagwrite("tiles")
 
 ^+l::
 send !tln
@@ -21,3 +13,7 @@ send {esc}
 return
 
 #ifwinactive
+
+flagwrite(x) {
+fileAppend, %x%, %a_scriptdir%\flag
+}
