@@ -1,8 +1,9 @@
 #ifwinactive ahk_exe vba.exe
-f1::flagwrite("")
-f2::flagwrite("coords")
-f3::flagwrite("signposts")
-f4::flagwrite("tiles")
+f1::flagwrite("previous")
+f2::flagwrite("current")
+f3::flagwrite("next")
+f4::flagwrite("")
+f5::flagwrite("tiles")
 
 ^+l::
 send !tln

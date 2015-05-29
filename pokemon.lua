@@ -225,6 +225,19 @@ end
 return results
 end
 
+function get_map_info()
+local mapgroup = memory.readbyte(0xdcb5)
+local mapnumber = memory.readbyte(0xdcb6)
+local results = {group=mapgroup, number=mapnumber, objects={}}
+for i, warp in ipairs(get_warps()) do
+table.insert(results.objects, warp)
+end
+for i, signpost in ipairs(get_signposts()) do
+table.insert(results.objects, signpost)
+end
+return results
+end
+
 function read_signposts()
 local y = memory.readbyte(0xdcb7)
 local x = memory.readbyte(0xdcb8)
@@ -287,15 +300,55 @@ res, data = flagged()
 if not res then
 return
 end
+nvda.stop()
 if data == "coords" then
 read_coords()
 elseif data == "signposts" then
 read_signposts()
 elseif data == "tiles" then
 read_tiles()
+elseif data == "current" then
+read_current_item()
+elseif data == "next" then
+read_next_item()
+elseif data == "previous" then
+read_previous_item()
 else
 read_text()
 end
+end
+
+function read_current_item()
+local info = get_map_info()
+reset_current_item_if_needed(info)
+read_item(info.objects[current_item])
+end
+
+function reset_current_item_if_needed(info)
+if info.group*256+info.number ~= current_map then
+current_item = 1
+current_map = info.group*256+info.number
+end
+end
+
+function read_next_item()
+local info = get_map_info()
+reset_current_item_if_needed(info)
+current_item = current_item + 1
+if current_item > #info.objects then
+current_item = 1
+end
+read_current_item()
+end
+
+function read_previous_item()
+local info = get_map_info()
+reset_current_item_if_needed(info)
+current_item = current_item - 1
+if current_item == 0 then
+current_item = #info.objects
+end
+read_current_item()
 end
 
 function read_item(item)
@@ -307,6 +360,7 @@ end
 
 counter = 0
 oldtext = "" -- last text seen
+current_item = nil
 while true do
 emu.frameadvance()
 counter = counter + 1
