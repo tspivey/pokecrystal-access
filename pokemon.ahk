@@ -4,6 +4,8 @@ f2::flagwrite("current")
 f3::flagwrite("next")
 f4::flagwrite("")
 f5::flagwrite("tiles")
+f6::flagwrite("coords")
+/::flagwrite("pathfind")
 
 ^+l::
 send !tln

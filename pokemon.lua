@@ -1,3 +1,4 @@
+require "a-star"
 FLAGFILE = "flag"
 -- characters table
 chars = {}
@@ -331,6 +332,8 @@ elseif data == "next" then
 read_next_item()
 elseif data == "previous" then
 read_previous_item()
+elseif data == "pathfind" then
+pathfind()
 else
 read_text()
 end
@@ -369,12 +372,135 @@ end
 read_current_item()
 end
 
+function pathfind()
+local info = get_map_info()
+reset_current_item_if_needed(info)
+local obj = info.objects[current_item]
+find_path_to(obj.x, obj.y)
+end
+
 function read_item(item)
 local y = memory.readbyte(0xdcb7)
 local x = memory.readbyte(0xdcb8)
 local dir = direction(x, y, item.x, item.y)
 nvda.say(item.name .. ": " .. dir)
 end
+
+function get_map_blocks()
+-- map width, height in blocks
+local width = memory.readbyteunsigned(0xd19f)
+local height = memory.readbyteunsigned(0xd19e)
+local row_width = width+6 -- including border
+ptr = 0xc800 -- start of overworld
+-- there is a border of 3 blocks on each edge of the map.
+local blocks = {}
+for y = 0, height - 1 do
+for x = 0, width - 1 do
+local block = memory.readbyteunsigned(ptr+(width+6)*3+(y*row_width)+(x+3))
+blocks[y] = blocks[y] or {}
+blocks[y][x] = block
+end
+end
+return blocks
+end
+
+function get_map_collisions()
+local blocks = get_map_blocks()
+local width = #blocks[0]
+local collisions = {}
+function add_collision(x, y, type)
+collisions[y] = collisions[y] or {}
+collisions[y][x] = type
+end
+local collision_bank = memory.readbyteunsigned(0xd1df)
+local collision_addr = memory.readword(0xd1e0)
+collision_addr = (collision_bank * 16384) + (collision_addr - 16384)
+
+for y = 0, #blocks do
+for x = 0, width do
+-- Each block is a 2x2 walkable tile. The collision data is
+-- (top left, top right, bottom left, bottom right).
+-- We have block data for the first half of the xy pair here.
+local block_index = blocks[y][x]
+local ptr = collision_addr + (block_index * 4)
+add_collision(x*2, y*2, memory.gbromreadbyte(ptr))
+add_collision(x*2+1, y*2, memory.gbromreadbyte(ptr+1))
+add_collision(x*2, y*2+1, memory.gbromreadbyte(ptr+2))
+add_collision(x*2+1, y*2+1, memory.gbromreadbyte(ptr+3))
+end -- x
+end -- y
+return collisions
+end
+
+function find_path_to(dest_x, dest_y)
+local player_y = memory.readbyte(0xdcb7)
+local player_x = memory.readbyte(0xdcb8)
+local collisions = get_map_collisions()
+local allnodes = {}
+local width = #collisions[0]
+local start = nil
+local dest = nil
+-- set all the objects to walls
+for i, object in ipairs(get_objects()) do
+collisions[object.y][object.x] = 7
+end
+if inpassible_tiles[collisions[dest_y][dest_x]] then
+print(dest_y .. " " .. dest_x .. " is inpassible, searching")
+local to_search = {
+{dest_y-1, dest_x};
+{dest_y-2, dest_x};
+{dest_y+1, dest_x};
+}
+for i, pos in ipairs(to_search) do
+if not inpassible_tiles[collisions[pos[1]][pos[2]]] then
+dest_y = pos[1]
+dest_x = pos[2]
+print("found " .. dest_y .. " " .. dest_x)
+break
+end
+end
+end
+-- generate the all nodes list for pathfinding, and track the start and end nodes
+for y = 0, #collisions do
+for x = 0, width do
+local n = {x=x, y=y, type=collisions[y][x]}
+table.insert(allnodes, n)
+if x == player_x and y == player_y then
+start = n
+end
+if x == dest_x and y == dest_y then
+dest = n
+end
+end -- x
+end -- y
+local valid = function (node, neighbor)
+if astar.dist_between(node, neighbor) ~= 1 then
+return false
+elseif inpassible_tiles[neighbor.type] then
+return false
+end
+return true
+end -- valid
+path = astar.path(start, dest, allnodes, true, valid)
+if not path then
+nvda.say("no path")
+return
+end
+for i, node in ipairs(path) do
+if i > 1 then
+local last = path[i-1]
+nvda.say(direction(last.x, last.y, node.x, node.y))
+end
+end
+end
+
+inpassible_tiles = {
+[7]=true;
+[18] = true;
+[21] = true;
+[145]=true;
+[149] = true;
+}
 
 counter = 0
 oldtext = "" -- last text seen
