@@ -284,13 +284,11 @@ audio.play("sounds\\step.wav", 0, 0, 30)
 end
 end)
 
-counter = 0
-oldtext = "" -- last text seen
-while true do
-emu.frameadvance()
-counter = counter + 1
+function handle_user_actions()
 res, data = flagged()
-if res then
+if not res then
+return
+end
 if data == "coords" then
 read_coords()
 elseif data == "signposts" then
@@ -302,6 +300,12 @@ read_text()
 end
 end
 
+counter = 0
+oldtext = "" -- last text seen
+while true do
+emu.frameadvance()
+counter = counter + 1
+handle_user_actions()
 local text = get_text()
 if text ~= oldtext then
 want_read = true
