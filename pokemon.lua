@@ -363,7 +363,7 @@ function read_previous_item()
 local info = get_map_info()
 reset_current_item_if_needed(info)
 current_item = current_item - 1
-if current_item == 0 then
+if current_item == 0  or current_item > #info.objects then
 current_item = #info.objects
 end
 read_current_item()
