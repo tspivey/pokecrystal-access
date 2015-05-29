@@ -225,6 +225,21 @@ end
 return results
 end
 
+function get_objects()
+local ptr = 0xd4fe
+local results = {}
+for i = 1, 12 do
+local x = memory.readbyte(ptr+0x12)-4
+local y = memory.readbyte(ptr+0x13)-4
+local name = "Object " .. i
+if memory.readbyte(ptr) ~= 0 then
+table.insert(results, {x=x, y=y, name=name, type="object"})
+end
+ptr = ptr + 40
+end
+return results
+end
+
 function get_map_info()
 local mapgroup = memory.readbyte(0xdcb5)
 local mapnumber = memory.readbyte(0xdcb6)
@@ -234,6 +249,9 @@ table.insert(results.objects, warp)
 end
 for i, signpost in ipairs(get_signposts()) do
 table.insert(results.objects, signpost)
+end
+for i, object in ipairs(get_objects()) do
+table.insert(results.objects, object)
 end
 return results
 end
