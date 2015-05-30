@@ -498,6 +498,7 @@ inpassible_tiles = {
 [7]=true;
 [18] = true;
 [21] = true;
+[41] = true;
 [145]=true;
 [149] = true;
 }
