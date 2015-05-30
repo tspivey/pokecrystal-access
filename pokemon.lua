@@ -1,5 +1,9 @@
 require "a-star"
 FLAGFILE = "flag"
+EAST = 1
+WEST = 2
+SOUTH = 4
+NORTH = 8
 -- characters table
 chars = {}
 chars[0x7F] = " "
@@ -241,6 +245,32 @@ end
 return results
 end
 
+function get_connections()
+local connections = memory.readbyte(0xd1a8)
+local function hasbit(x, p)
+return x % (p + p) >= p
+end
+local results = {}
+local function add_connection(dir)
+local name = dir .. " connection"
+table.insert(results, {type="connection", direction=dir, name=name})
+end
+
+if hasbit(connections, NORTH) then
+add_connection("north")
+end
+if hasbit(connections, SOUTH) then
+add_connection("south")
+end
+if hasbit(connections, EAST) then
+add_connection("east")
+end
+if hasbit(connections, WEST) then
+add_connection("west")
+end
+return results
+end
+
 function get_map_info()
 local mapgroup = memory.readbyte(0xdcb5)
 local mapnumber = memory.readbyte(0xdcb6)
@@ -250,6 +280,9 @@ table.insert(results.objects, warp)
 end
 for i, signpost in ipairs(get_signposts()) do
 table.insert(results.objects, signpost)
+end
+for i, connection in ipairs(get_connections()) do
+table.insert(results.objects, connection)
 end
 for i, object in ipairs(get_objects()) do
 table.insert(results.objects, object)
@@ -376,14 +409,17 @@ function pathfind()
 local info = get_map_info()
 reset_current_item_if_needed(info)
 local obj = info.objects[current_item]
-find_path_to(obj.x, obj.y)
+find_path_to(obj)
 end
 
 function read_item(item)
 local y = memory.readbyte(0xdcb7)
 local x = memory.readbyte(0xdcb8)
-local dir = direction(x, y, item.x, item.y)
-nvda.say(item.name .. ": " .. dir)
+local s = item.name
+if item.x then
+s = s .. ": " .. direction(x, y, item.x, item.y)
+end
+nvda.say(s)
 end
 
 function get_map_blocks()
@@ -432,7 +468,7 @@ end -- y
 return collisions
 end
 
-function find_path_to(dest_x, dest_y)
+function find_path_to(obj)
 local player_y = memory.readbyte(0xdcb7)
 local player_x = memory.readbyte(0xdcb8)
 local collisions = get_map_collisions()
@@ -443,6 +479,43 @@ local dest = nil
 -- set all the objects to walls
 for i, object in ipairs(get_objects()) do
 collisions[object.y][object.x] = 7
+end
+-- if searching for a connection, we scan the edge until we find a free tile.
+local function find_free_x(y)
+for x = 0, width do
+if not inpassible_tiles[collisions[y][x]] then
+return x
+end
+end
+end
+local function find_Free_y(x)
+for y = 0, #collisions do
+if not inpassible_tiles[collisions[y][x]] then
+return y
+end
+end
+end
+if obj.type == "connection" then
+if obj.direction == "north" then
+dest_y = 0
+dest_x = find_free_x(dest_y)
+elseif obj.direction == "south" then
+dest_y = #collisions
+dest_x = find_free_x(dest_y)
+elseif obj.direction == "east" then
+dest_x = width
+dest_y = find_Free_y(dest_x)
+elseif obj.direction == "west" then
+dest_x = 0
+dest_y = find_Free_y(dest_x)
+end
+else -- not a connection
+dest_x = obj.x
+dest_y = obj.y
+end
+if dest_x == nil or dest_y == nil then
+nvda.say("no path")
+return
 end
 if inpassible_tiles[collisions[dest_y][dest_x]] then
 print(dest_y .. " " .. dest_x .. " is inpassible, searching")
