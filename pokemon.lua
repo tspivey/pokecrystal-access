@@ -533,9 +533,13 @@ end
 if inpassible_tiles[collisions[dest_y][dest_x]] then
 print(dest_y .. " " .. dest_x .. " is inpassible, searching")
 local to_search = {
+{dest_y+1, dest_x};
 {dest_y-1, dest_x};
 {dest_y-2, dest_x};
-{dest_y+1, dest_x};
+{dest_y, dest_x+1};
+{dest_y, dest_x-1};
+{dest_y, dest_x+2};
+{dest_y, dest_x-2};
 }
 for i, pos in ipairs(to_search) do
 if collisions[pos[1]] ~= nil and collisions[pos[1]][pos[2]] ~= nil and not inpassible_tiles[collisions[pos[1]][pos[2]]] then
