@@ -179,8 +179,7 @@ end
 end
 
 function get_warps()
-local mapgroup = memory.readbyte(0xdcb5)
-local mapnumber = memory.readbyte(0xdcb6)
+local mapgroup, mapnumber = get_map_gn()
 local eventstart = memory.readword(0xd1a6)
 local bank = memory.readbyte(0xd1a3)
 eventstart = (bank*16384) + (eventstart - 16384)
@@ -191,7 +190,7 @@ for i = 1, warps do
 local start = warp_table_start+(5*(i-1))
 local warpy = memory.gbromreadbyte(start)
 local warpx = memory.gbromreadbyte(start+1)
-local idx = (mapgroup*256)+mapnumber
+local idx = get_map_id()
 if warpnames[idx] and warpnames[idx][i] ~= nil then
 name = warpnames[idx][i]
 else
@@ -205,9 +204,8 @@ end
 function get_signposts()
 local eventstart = memory.readword(0xd1a6)
 local bank = memory.readbyte(0xd1a3)
-local mapgroup = memory.readbyte(0xdcb5)
-local mapnumber = memory.readbyte(0xdcb6)
-names = postnames[(mapgroup*256)+mapnumber] or {}
+local mapgroup, mapnumber = get_map_gn()
+names = postnames[get_map_id()] or {}
 eventstart = (bank*16384) + (eventstart - 16384)
 local warps = memory.gbromreadbyte(eventstart+2)
 local ptr = eventstart + 3 -- start of warp table
@@ -285,8 +283,7 @@ return results
 end
 
 function get_map_info()
-local mapgroup = memory.readbyte(0xdcb5)
-local mapnumber = memory.readbyte(0xdcb6)
+local mapgroup, mapnumber = get_map_gn()
 local results = {group=mapgroup, number=mapnumber, objects={}}
 for i, warp in ipairs(get_warps()) do
 table.insert(results.objects, warp)
@@ -301,6 +298,17 @@ for i, object in ipairs(get_objects()) do
 table.insert(results.objects, object)
 end
 return results
+end
+
+function get_map_gn()
+local mapgroup = memory.readbyte(0xdcb5)
+local mapnumber = memory.readbyte(0xdcb6)
+return mapgroup, mapnumber
+end
+
+function get_map_id()
+local group, number = get_map_gn()
+return group*256+number
 end
 
 function read_signposts()
@@ -318,8 +326,7 @@ end
 
 -- Returns true or false indicating whether we're on a map or not.
 function on_map()
-local mapgroup = memory.readbyte(0xdcb5)
-local mapnumber = memory.readbyte(0xdcb6)
+local mapgroup, mapnumber = get_map_gn()
 if mapnumber == 0 and mapgroup == 0 then
 return false
 else
