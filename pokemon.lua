@@ -231,16 +231,29 @@ return results
 end
 
 function get_objects()
-local ptr = 0xd4fe
+local ptr = 0xd71e+16 -- skip the player
+local liveptr = 0xd81e -- live objects
 local results = {}
-for i = 1, 12 do
-local x = memory.readbyte(ptr+0x12)-4
-local y = memory.readbyte(ptr+0x13)-4
-local name = "Object " .. i
-if memory.readbyte(ptr) ~= 0 then
-table.insert(results, {x=x, y=y, name=name, type="object"})
+for i = 1, 15 do
+local y = memory.readbyte(ptr+0x02)
+local x = memory.readbyte(ptr+0x03)
+local object_struct = memory.readbyte(ptr)
+-- we have map object structs, and object structs. If the first byte of the
+-- map object struct is not 0xff, use that to look up the object struct,
+-- and get its coords.
+-- if object is on screen and on the map
+if object_struct ~= 0xff and y ~= 255 then
+local l = 0xd4fe+((object_struct-1)*40)
+x = memory.readbyte(l+0x12)
+y = memory.readbyte(l+0x13)
 end
-ptr = ptr + 40
+local name = "Object " .. i .. string.format(", %x", ptr)
+if y ~= 255 then
+if memory.readbyte(liveptr+i) == 0 then
+table.insert(results, {x=x-4, y=y-4, name=name, type="object"})
+end
+end
+ptr = ptr + 16
 end
 return results
 end
