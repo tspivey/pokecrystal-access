@@ -538,7 +538,7 @@ local to_search = {
 {dest_y+1, dest_x};
 }
 for i, pos in ipairs(to_search) do
-if not inpassible_tiles[collisions[pos[1]][pos[2]]] then
+if collisions[pos[1]] ~= nil and collisions[pos[1]][pos[2]] ~= nil and not inpassible_tiles[collisions[pos[1]][pos[2]]] then
 dest_y = pos[1]
 dest_x = pos[2]
 print("found " .. dest_y .. " " .. dest_x)
