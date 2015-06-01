@@ -183,10 +183,6 @@ return
 end
 
 nvda.say("x " .. x .. ", y " .. y)
-local warps = get_warps()
-for i, warp in ipairs(warps) do
-read_item(warp)
-end
 end
 
 function get_warps()
@@ -317,19 +313,6 @@ local group, number = get_map_gn()
 return group*256+number
 end
 
-function read_signposts()
-local y = memory.readbyte(0xdcb7)
-local x = memory.readbyte(0xdcb8)
-if not on_map() then
-nvda.say("Not on a map")
-return
-end
-local signposts = get_signposts()
-for i, signpost in ipairs(signposts) do
-read_item(signpost)
-end
-end
-
 -- Returns true or false indicating whether we're on a map or not.
 function on_map()
 local mapgroup, mapnumber = get_map_gn()
@@ -381,8 +364,6 @@ end
 nvda.stop()
 if data == "coords" then
 read_coords()
-elseif data == "signposts" then
-read_signposts()
 elseif data == "tiles" then
 read_tiles()
 elseif data == "current" then
