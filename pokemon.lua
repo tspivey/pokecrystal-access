@@ -600,10 +600,34 @@ names[id][obj_id] = name
 else
 names[id][obj_id] = nil
 end
+write_names()
+end
+
+function write_names()
 local file = io.open("names.lua", "wb")
 file:write(serpent.block(names, {comment=false}))
 io.close(file)
 nvda.say("names saved")
+end
+function rename_map(name)
+local id = get_map_id()
+local obj_id = "map"
+names[id] = names[id] or {}
+if name ~= "" then
+names[id][obj_id] = name
+else
+names[id][obj_id] = nil
+end
+write_names()
+end
+
+function read_mapname()
+local id = get_map_id()
+if names[id] == nil or names[id]["map"] == nil then
+nvda.say("unknown")
+else
+nvda.say(names[id]["map"])
+end
 end
 
 commands = {
@@ -615,6 +639,8 @@ previous = {read_previous_item, true};
 pathfind = {pathfind, true};
 name = {rename_current, true};
 text = {read_text, false};
+mapname = {rename_map, true};
+current_mapname = {read_mapname, true};
 }
 
 counter = 0

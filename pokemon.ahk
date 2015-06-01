@@ -6,6 +6,7 @@ f4::flagwrite("text")
 f5::flagwrite("tiles")
 f6::flagwrite("coords")
 /::flagwrite("pathfind")
++f1::flagwrite("current_mapname")
 +f2::
 inputBox, name, Name Item
 if ErrorLevel {
@@ -13,6 +14,14 @@ return
 }
 flagwrite("name " . name)
 return
++f3::
+inputBox, name, Name Map
+if ErrorLevel {
+return
+}
+flagwrite("mapname " . name)
+return
+
 ^+l::
 send !tln
 winWaitActive Lua Script
