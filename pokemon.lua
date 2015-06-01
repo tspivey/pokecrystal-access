@@ -569,13 +569,28 @@ if not path then
 nvda.say("no path")
 return
 end
+local function same_direction(n1, n2)
+if (n1.x ~= n2.x and n1.y == n2.y) or (n1.x == n2.x and n1.y ~= n2.y) then
+return true
+else
+return false
+end
+end
+local start = path[1]
 for i, node in ipairs(path) do
 if i > 1 then
 local last = path[i-1]
-nvda.say(direction(last.x, last.y, node.x, node.y))
+if not same_direction(start, node) then
+nvda.say(direction(start.x, start.y, last.x, last.y))
+start = last
 end
+-- handle the last direction change in the path
+if i == #path then
+nvda.say(direction(start.x, start.y, node.x, node.y))
 end
-end
+end -- i > 1
+end -- for
+end -- function
 
 inpassible_tiles = {
 [7]=true;
