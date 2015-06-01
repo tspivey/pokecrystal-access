@@ -121,7 +121,7 @@ end
 function flagged()
 local f = io.open(FLAGFILE, "r")
 if f ~= nil then
-local data = f:read()
+local data = f:read("*a")
 io.close(f)
 os.remove(FLAGFILE)
 return true, data
