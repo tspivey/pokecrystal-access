@@ -6,7 +6,13 @@ f4::flagwrite("")
 f5::flagwrite("tiles")
 f6::flagwrite("coords")
 /::flagwrite("pathfind")
-
++f2::
+inputBox, name, Name Item
+if ErrorLevel {
+return
+}
+flagwrite("name " . name)
+return
 ^+l::
 send !tln
 winWaitActive Lua Script

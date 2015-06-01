@@ -1,4 +1,5 @@
 require "a-star"
+serpent = require "serpent"
 FLAGFILE = "flag"
 EAST = 1
 WEST = 2
@@ -105,11 +106,21 @@ chars[0xFC] = "6"
 chars[0xFD] = "7"
 chars[0xFE] = "8"
 chars[0xFF] = "9"
-dofile("names.lua")
 
 assert(package.loadlib("MushReader.dll", "luaopen_audio"))()
 assert(package.loadlib("audio.dll", "luaopen_audio"))()
 nvda.say("ready")
+fp = io.open("names.lua", "rb")
+if fp ~= nil then
+names = fp:read("*all")
+res, names = serpent.load(names)
+io.close(fp)
+end
+if names == nil then
+nvda.say("Unable to load names file.")
+names = {}
+end
+
 function translate(char)
 if chars[char] then
 return chars[char]
@@ -191,12 +202,8 @@ local start = warp_table_start+(5*(i-1))
 local warpy = memory.gbromreadbyte(start)
 local warpx = memory.gbromreadbyte(start+1)
 local idx = get_map_id()
-if warpnames[idx] and warpnames[idx][i] ~= nil then
-name = warpnames[idx][i]
-else
-name = "Warp " .. i
-end
-table.insert(results, {x=warpx, y=warpy, name=name, type="warp"})
+local name = "Warp " .. i
+table.insert(results, {x=warpx, y=warpy, name=name, type="warp", id="warp_" .. i})
 end
 return results
 end
@@ -205,7 +212,6 @@ function get_signposts()
 local eventstart = memory.readword(0xd1a6)
 local bank = memory.readbyte(0xd1a3)
 local mapgroup, mapnumber = get_map_gn()
-names = postnames[get_map_id()] or {}
 eventstart = (bank*16384) + (eventstart - 16384)
 local warps = memory.gbromreadbyte(eventstart+2)
 local ptr = eventstart + 3 -- start of warp table
@@ -220,8 +226,8 @@ local results = {}
 for i = 1, signposts do
 local posty = memory.gbromreadbyte(ptr)
 local postx = memory.gbromreadbyte(ptr+1)
-name = names[i] or ("signpost " .. i)
-local post = {x=postx, y=posty, name=name, type="signpost"}
+local name = "signpost " .. i
+local post = {x=postx, y=posty, name=name, type="signpost", id="signpost_" .. i}
 table.insert(results, post)
 ptr = ptr + 5 -- point at the next one
 end
@@ -248,7 +254,7 @@ end
 local name = "Object " .. i .. string.format(", %x", ptr)
 if y ~= 255 then
 if memory.readbyte(liveptr+i) == 0 then
-table.insert(results, {x=x-4, y=y-4, name=name, type="object"})
+table.insert(results, {x=x-4, y=y-4, name=name, type="object", id="object_" .. i})
 end
 end
 ptr = ptr + 16
@@ -264,7 +270,7 @@ end
 local results = {}
 local function add_connection(dir)
 local name = dir .. " connection"
-table.insert(results, {type="connection", direction=dir, name=name})
+table.insert(results, {type="connection", direction=dir, name=name, id="connection_" .. dir})
 end
 
 if hasbit(connections, NORTH) then
@@ -387,6 +393,8 @@ elseif data == "previous" then
 read_previous_item()
 elseif data == "pathfind" then
 pathfind()
+elseif data:sub(1, 5) == "name " then
+rename_current(data:sub(6))
 else
 read_text()
 end
@@ -435,7 +443,11 @@ end
 function read_item(item)
 local y = memory.readbyte(0xdcb7)
 local x = memory.readbyte(0xdcb8)
+local map_id = get_map_id()
 local s = item.name
+if names[map_id] ~= nil and names[map_id][item.id] ~= nil then
+s = names[map_id][item.id]
+end
 if item.x then
 s = s .. ": " .. direction(x, y, item.x, item.y)
 end
@@ -599,6 +611,26 @@ inpassible_tiles = {
 [145]=true;
 [149] = true;
 }
+
+function rename_current(name)
+if not on_map() then
+return
+end
+local info = get_map_info()
+reset_current_item_if_needed(info)
+local id = get_map_id()
+local obj_id = info.objects[current_item].id
+names[id] = names[id] or {}
+if name ~= "" then
+names[id][obj_id] = name
+else
+names[id][obj_id] = nil
+end
+local file = io.open("names.lua", "wb")
+file:write(serpent.block(names, {comment=false}))
+io.close(file)
+nvda.say("names saved")
+end
 
 counter = 0
 oldtext = "" -- last text seen
