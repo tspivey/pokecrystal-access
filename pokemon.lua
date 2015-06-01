@@ -316,7 +316,7 @@ end
 -- Returns true or false indicating whether we're on a map or not.
 function on_map()
 local mapgroup, mapnumber = get_map_gn()
-if mapnumber == 0 and mapgroup == 0 then
+if (mapnumber == 0 and mapgroup == 0) or memory.readbyte(0xd22d) ~= 0 then
 return false
 else
 return true
