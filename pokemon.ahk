@@ -2,7 +2,7 @@
 f1::flagwrite("previous")
 f2::flagwrite("current")
 f3::flagwrite("next")
-f4::flagwrite("")
+f4::flagwrite("text")
 f5::flagwrite("tiles")
 f6::flagwrite("coords")
 /::flagwrite("pathfind")

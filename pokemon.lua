@@ -362,22 +362,15 @@ if not res then
 return
 end
 nvda.stop()
-if data == "coords" then
-read_coords()
-elseif data == "tiles" then
-read_tiles()
-elseif data == "current" then
-read_current_item()
-elseif data == "next" then
-read_next_item()
-elseif data == "previous" then
-read_previous_item()
-elseif data == "pathfind" then
-pathfind()
-elseif data:sub(1, 5) == "name " then
-rename_current(data:sub(6))
-else
-read_text()
+local command, args = data:match("^([a-z_]+) *(.*)$")
+print("parsing " .. command)
+if commands[command] ~= nil then
+local fn, needs_map = unpack(commands[command])
+if needs_map and not on_map() then
+nvda.say("Not on a map.")
+return
+end
+fn(args)
 end
 end
 
@@ -612,6 +605,17 @@ file:write(serpent.block(names, {comment=false}))
 io.close(file)
 nvda.say("names saved")
 end
+
+commands = {
+coords = {read_coords, true};
+tiles = {read_tiles, true};
+current = {read_current_item, true};
+next = {read_next_item, true};
+previous = {read_previous_item, true};
+pathfind = {pathfind, true};
+name = {rename_current, true};
+text = {read_text, false};
+}
 
 counter = 0
 oldtext = "" -- last text seen
