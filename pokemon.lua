@@ -144,15 +144,19 @@ end
 function get_text()
 local textstart = 0xc4a0
 local text = ""
+local menu_position = nil
 for i = 0, 359 do
 local char = memory.readbyteunsigned(textstart+i)
+if char == 0xed then
+menu_position = i
+end
 char = translate(char)
 if i == 358 and char == "?" then
 char = " "
 end
 text = text .. char
 end
-return text
+return text, menu_position
 end
 
 function text_to_lines(text)
@@ -645,6 +649,13 @@ nvda.say(names[id]["map"])
 end
 end
 
+function read_menu_item(text, pos)
+local lines = text_to_lines(text)
+local line = math.floor(pos/20)+1
+local l = lines[line]
+nvda.say(l)
+end
+
 commands = {
 coords = {read_coords, true};
 tiles = {read_tiles, true};
@@ -665,14 +676,18 @@ while true do
 emu.frameadvance()
 counter = counter + 1
 handle_user_actions()
-local text = get_text()
+local text, menu_pos = get_text()
 if text ~= oldtext then
 want_read = true
 text_updated_counter = counter
 oldtext = text
 end
 if want_read and (counter - text_updated_counter) >= 20 then
+if menu_pos ~= nil then
+read_menu_item(text, menu_pos)
+else
 read_text()
+end
 want_read = false
 end
 
