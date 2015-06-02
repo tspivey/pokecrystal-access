@@ -429,7 +429,6 @@ return
 end
 nvda.stop()
 local command, args = data:match("^([a-z_]+) *(.*)$")
-print("parsing " .. command)
 if commands[command] ~= nil then
 local fn, needs_map = unpack(commands[command])
 if needs_map and not on_map() then
