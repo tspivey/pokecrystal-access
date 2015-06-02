@@ -240,8 +240,12 @@ for i = 1, warps do
 local start = warp_table_start+(5*(i-1))
 local warpy = memory.gbromreadbyte(start)
 local warpx = memory.gbromreadbyte(start+1)
-local idx = get_map_id()
+local mapid = memory.gbromreadbyte(start+3)*256+memory.gbromreadbyte(start+4)
 local name = "Warp " .. i
+local mapname = get_map_name(mapid)
+if mapname ~= "" then
+name = mapname
+end
 table.insert(results, {x=warpx, y=warpy, name=name, type="warp", id="warp_" .. i})
 end
 return results
@@ -307,24 +311,36 @@ local function hasbit(x, p)
 return x % (p + p) >= p
 end
 local results = {}
-local function add_connection(dir)
+local function add_connection(dir, mapid)
 local name = dir .. " connection"
+local mapname = get_map_name(mapid)
+if mapname ~= "" then
+name = name .. ", " .. mapname
+end
 table.insert(results, {type="connection", direction=dir, name=name, id="connection_" .. dir})
 end
 
 if hasbit(connections, NORTH) then
-add_connection("north")
+add_connection("north", memory.readbyte(0xd1a9)*256+memory.readbyte(0xd1aa))
 end
 if hasbit(connections, SOUTH) then
-add_connection("south")
+add_connection("south", memory.readbyte(0xd1b5)*256+memory.readbyte(0xd1b6))
 end
 if hasbit(connections, EAST) then
-add_connection("east")
+add_connection("east", memory.readbyte(0xd1cd)*256+memory.readbyte(0xd1ce))
 end
 if hasbit(connections, WEST) then
-add_connection("west")
+add_connection("west", memory.readbyte(0xd1c1)*256+memory.readbyte(0xd1c2))
 end
 return results
+end
+
+function get_map_name(mapid)
+if names[mapid] ~= nil and names[mapid]["map"] ~= nil then
+return names[mapid]["map"]
+else
+return ""
+end
 end
 
 function get_map_info()
