@@ -138,36 +138,32 @@ return false, nil
 end
 end
 
-function get_text()
-local textstart = 0xc4a0
-local text = ""
+function get_text_lines()
+local raw_text = memory.readbyterange(0xc4a0, 360)
+local lines = {}
+local line = ""
 local menu_position = nil
-for i = 0, 359 do
-local char = memory.readbyteunsigned(textstart+i)
+for i = 1, 360, 20 do
+for j = 0, 19 do
+local char = raw_text[i+j]
 if char == 0xed then
 menu_position = i
 end
 char = translate(char)
-if i == 358 and char == "?" then
+if i+j == 359 and char == "?" then
 char = " "
 end
-text = text .. char
+line = line .. char
 end
-return text, menu_position
-end
-
-function text_to_lines(text)
-local lines = {}
-for i = 1, 360, 20 do
-table.insert(lines, text:sub(i, i+19))
-end
-return lines
+table.insert(lines, line)
+line = ""
+end -- i
+return lines, menu_position
 end
 
 last17 = ""
 function read_text(args, auto)
-local text = get_text()
-local lines = text_to_lines(text)
+local lines = get_text_lines()
 if auto then
 if trim(lines[15]) == trim(last17) then
 lines[15] = ""
@@ -200,7 +196,7 @@ end
 
 function get_outer_menu_text(text)
 local header = parse_menu_header()
-local lines = text_to_lines(text)
+local lines = get_text_lines()
 local s = ""
 for i = header.end_y+1, 18 do
 local line = trim(lines[i])
@@ -707,8 +703,7 @@ nvda.say(names[id]["map"])
 end
 end
 
-function read_menu_item(text, pos)
-local lines = text_to_lines(text)
+function read_menu_item(lines, pos)
 local line = math.floor(pos/20)+1
 local l = lines[line]
 nvda.say(l)
@@ -746,7 +741,8 @@ while true do
 emu.frameadvance()
 counter = counter + 1
 handle_user_actions()
-local text, menu_pos = get_text()
+local text_lines, menu_pos = get_text_lines()
+local text = table.concat(text_lines, "")
 if text ~= oldtext then
 want_read = true
 text_updated_counter = counter
@@ -764,7 +760,7 @@ nvda.say(outer_text)
 end
 last_outer_text = outer_text
 end
-read_menu_item(text, menu_pos)
+read_menu_item(text_lines, menu_pos)
 else
 if in_options then
 in_options = false
