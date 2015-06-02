@@ -360,6 +360,13 @@ audio.play("sounds\\step.wav", 0, 0, 30)
 end
 end)
 
+in_options = false
+memory.registerexec(0x2d63, function()
+if memory.getregister("a") == 57 and memory.getregister("h") == 0x41 and memory.getregister("l") == 0xd0 then
+in_options = true
+end
+end)
+
 function handle_user_actions()
 res, data = flagged()
 if not res then
@@ -654,6 +661,9 @@ local lines = text_to_lines(text)
 local line = math.floor(pos/20)+1
 local l = lines[line]
 nvda.say(l)
+if in_options and not lines[line+1]:match("^%s*$") then
+nvda.say(lines[line+1])
+end
 end
 
 commands = {
@@ -686,6 +696,9 @@ if want_read and (counter - text_updated_counter) >= 20 then
 if menu_pos ~= nil then
 read_menu_item(text, menu_pos)
 else
+if in_options then
+in_options = false
+end
 read_text()
 end
 want_read = false
