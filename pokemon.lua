@@ -753,7 +753,7 @@ if want_read and (counter - text_updated_counter) >= 20 then
 if menu_pos ~= nil then
 -- if the menu outer text changed
 outer_text = get_outer_menu_text(text)
-if last_outer_text ~= outer_text then
+if not in_options and last_outer_text ~= outer_text then
 -- probably a different menu, mom's questions cause this
 if outer_text ~= "" then
 nvda.say(outer_text)
