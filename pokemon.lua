@@ -6,106 +6,7 @@ WEST = 2
 SOUTH = 4
 NORTH = 8
 -- characters table
-chars = {}
-chars[0x7F] = " "
-chars[0x80] = "A"
-chars[0x81] = "B"
-chars[0x82] = "C"
-chars[0x83] = "D"
-chars[0x84] = "E"
-chars[0x85] = "F"
-chars[0x86] = "G"
-chars[0x87] = "H"
-chars[0x88] = "I"
-chars[0x89] = "J"
-chars[0x8A] = "K"
-chars[0x8B] = "L"
-chars[0x8C] = "M"
-chars[0x8D] = "N"
-chars[0x8E] = "O"
-chars[0x8F] = "P"
-chars[0x90] = "Q"
-chars[0x91] = "R"
-chars[0x92] = "S"
-chars[0x93] = "T"
-chars[0x94] = "U"
-chars[0x95] = "V"
-chars[0x96] = "W"
-chars[0x97] = "X"
-chars[0x98] = "Y"
-chars[0x99] = "Z"
-chars[0x9A] = "("
-chars[0x9B] = ")"
-chars[0x9C] = ":"
-chars[0x9D] = ";"
-chars[0x9E] = "["
-chars[0x9F] = "]"
-chars[0xA0] = "a"
-chars[0xA1] = "b"
-chars[0xA2] = "c"
-chars[0xA3] = "d"
-chars[0xA4] = "e"
-chars[0xA5] = "f"
-chars[0xA6] = "g"
-chars[0xA7] = "h"
-chars[0xA8] = "i"
-chars[0xA9] = "j"
-chars[0xAA] = "k"
-chars[0xAB] = "l"
-chars[0xAC] = "m"
-chars[0xAD] = "n"
-chars[0xAE] = "o"
-chars[0xAF] = "p"
-chars[0xB0] = "q"
-chars[0xB1] = "r"
-chars[0xB2] = "s"
-chars[0xB3] = "t"
-chars[0xB4] = "u"
-chars[0xB5] = "v"
-chars[0xB6] = "w"
-chars[0xB7] = "x"
-chars[0xB8] = "y"
-chars[0xB9] = "z"
-chars[0xC0] = "Ä"
-chars[0xC1] = "Ö"
-chars[0xC2] = "Ü"
-chars[0xC3] = "ä"
-chars[0xC4] = "ö"
-chars[0xC5] = "ü"
-chars[0xD0] = "'d"
-chars[0xD1] = "'l"
-chars[0xD2] = "'m"
-chars[0xD3] = "'r"
-chars[0xD4] = "'s"
-chars[0xD5] = "'t"
-chars[0xD6] = "'v"
-chars[0xE0] = "'"
-chars[0xE3] = "-"
-chars[0xE6] = "?"
-chars[0xE7] = "!"
-chars[0xE8] = "."
-chars[0xE9] = "&"
-chars[0xEA] = "é"
-chars[0xEB] = "?"
-chars[0xEC] = "?"
-chars[0xED] = "?"
-chars[0xEE] = "?"
-chars[0xEF] = "?"
-chars[0xF0] = "¥"
-chars[0xF1] = "×"
-chars[0xF3] = "/"
-chars[0xF4] = ","
-chars[0xF5] = "?"
-chars[0xF6] = "0"
-chars[0xF7] = "1"
-chars[0xF8] = "2"
-chars[0xF9] = "3"
-chars[0xFA] = "4"
-chars[0xFB] = "5"
-chars[0xFC] = "6"
-chars[0xFD] = "7"
-chars[0xFE] = "8"
-chars[0xFF] = "9"
+dofile("chars.lua")
 
 function load_table(file)
 local res, t
@@ -173,7 +74,7 @@ end
 for i, line in pairs(lines) do
 line = trim(line)
 if line ~= "" then
-nvda.say(line)
+tolk.say(line)
 end
 end
 end
@@ -214,11 +115,11 @@ function read_coords()
 local y = memory.readbyte(0xdcb7)
 local x = memory.readbyte(0xdcb8)
 if not on_map() then
-nvda.say("Not on a map")
+tolk.say("Not on a map")
 return
 end
 
-nvda.say("x " .. x .. ", y " .. y)
+tolk.say("x " .. x .. ", y " .. y)
 end
 
 function get_warps()
@@ -396,7 +297,7 @@ local down = memory.readbyte(0xc2fa)
 local up = memory.readbyte(0xc2fb)
 local left = memory.readbyte(0xc2fc)
 local right = memory.readbyte(0xc2fd)
-nvda.say(string.format("up %d down %d left %d right %d", up, down, left, right))
+tolk.say(string.format("up %d down %d left %d right %d", up, down, left, right))
 end
 
 memory.registerexec(0x292c, function()
@@ -420,12 +321,12 @@ res, data = flagged()
 if not res then
 return
 end
-nvda.stop()
+tolk.stop()
 local command, args = data:match("^([a-z_]+) *(.*)$")
 if commands[command] ~= nil then
 local fn, needs_map = unpack(commands[command])
 if needs_map and not on_map() then
-nvda.say("Not on a map.")
+tolk.say("Not on a map.")
 return
 end
 fn(args)
@@ -483,7 +384,7 @@ end
 if item.x then
 s = s .. ": " .. direction(x, y, item.x, item.y)
 end
-nvda.say(s)
+tolk.say(s)
 end
 
 function get_map_blocks()
@@ -578,7 +479,7 @@ dest_x = obj.x
 dest_y = obj.y
 end
 if dest_x == nil or dest_y == nil then
-nvda.say("no path")
+tolk.say("no path")
 return
 end
 if inpassible_tiles[collisions[dest_y][dest_x]] then
@@ -624,7 +525,7 @@ return true
 end -- valid
 path = astar.path(start, dest, allnodes, true, valid)
 if not path then
-nvda.say("no path")
+tolk.say("no path")
 return
 end
 local function same_direction(n1, n2)
@@ -639,12 +540,12 @@ for i, node in ipairs(path) do
 if i > 1 then
 local last = path[i-1]
 if not same_direction(start, node) then
-nvda.say(direction(start.x, start.y, last.x, last.y))
+tolk.say(direction(start.x, start.y, last.x, last.y))
 start = last
 end
 -- handle the last direction change in the path
 if i == #path then
-nvda.say(direction(start.x, start.y, node.x, node.y))
+tolk.say(direction(start.x, start.y, node.x, node.y))
 end
 end -- i > 1
 end -- for
@@ -680,7 +581,7 @@ function write_names()
 local file = io.open("names.lua", "wb")
 file:write(serpent.block(names, {comment=false}))
 io.close(file)
-nvda.say("names saved")
+tolk.say("names saved")
 end
 function rename_map(name)
 local id = get_map_id()
@@ -697,18 +598,18 @@ end
 function read_mapname()
 local id = get_map_id()
 if names[id] == nil or names[id]["map"] == nil then
-nvda.say("unknown")
+tolk.say("unknown")
 else
-nvda.say(names[id]["map"])
+tolk.say(names[id]["map"])
 end
 end
 
 function read_menu_item(lines, pos)
 local line = math.floor(pos/20)+1
 local l = lines[line]
-nvda.say(l)
+tolk.say(l)
 if in_options and not lines[line+1]:match("^%s*$") then
-nvda.say(lines[line+1])
+tolk.say(lines[line+1])
 end
 end
 
@@ -725,12 +626,12 @@ mapname = {rename_map, true};
 current_mapname = {read_mapname, true};
 }
 
-assert(package.loadlib("MushReader.dll", "luaopen_audio"))()
+assert(package.loadlib("luaTolk.dll", "luaopen_luaTolk"))()
 assert(package.loadlib("audio.dll", "luaopen_audio"))()
-nvda.say("ready")
+tolk.say("ready")
 res, names = load_table("names.lua")
 if res == nil then
-nvda.say("Unable to load names file.")
+tolk.say("Unable to load names file.")
 names = {}
 end
 
@@ -756,7 +657,7 @@ outer_text = get_outer_menu_text(text)
 if not in_options and last_outer_text ~= outer_text then
 -- probably a different menu, mom's questions cause this
 if outer_text ~= "" then
-nvda.say(outer_text)
+tolk.say(outer_text)
 end
 last_outer_text = outer_text
 end

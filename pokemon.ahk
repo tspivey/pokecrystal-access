@@ -1,3 +1,4 @@
+FileEncoding, UTF-8-RAW
 #ifwinactive ahk_exe vba.exe
 f1::flagwrite("previous")
 f2::flagwrite("current")
