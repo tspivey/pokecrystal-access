@@ -50,10 +50,10 @@ local char = raw_text[i+j]
 if char == 0xed then
 menu_position = i
 end
-char = translate(char)
-if i+j == 359 and char == "?" then
+if i+j == 359 and char == 0xee then
 char = " "
 end
+char = translate(char)
 line = line .. char
 end
 table.insert(lines, line)
