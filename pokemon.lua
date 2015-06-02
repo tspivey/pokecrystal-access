@@ -107,18 +107,15 @@ chars[0xFD] = "7"
 chars[0xFE] = "8"
 chars[0xFF] = "9"
 
-assert(package.loadlib("MushReader.dll", "luaopen_audio"))()
-assert(package.loadlib("audio.dll", "luaopen_audio"))()
-nvda.say("ready")
-fp = io.open("names.lua", "rb")
+function load_table(file)
+local res, t
+fp = io.open(file, "rb")
 if fp ~= nil then
-names = fp:read("*all")
-res, names = serpent.load(names)
+local data = fp:read("*all")
+res, t = serpent.load(data)
 io.close(fp)
 end
-if names == nil then
-nvda.say("Unable to load names file.")
-names = {}
+return res, t
 end
 
 function translate(char)
@@ -732,6 +729,15 @@ text = {read_text, false};
 mapname = {rename_map, true};
 current_mapname = {read_mapname, true};
 }
+
+assert(package.loadlib("MushReader.dll", "luaopen_audio"))()
+assert(package.loadlib("audio.dll", "luaopen_audio"))()
+nvda.say("ready")
+res, names = load_table("names.lua")
+if res == nil then
+nvda.say("Unable to load names file.")
+names = {}
+end
 
 counter = 0
 oldtext = "" -- last text seen
