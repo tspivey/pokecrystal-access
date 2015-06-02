@@ -168,7 +168,7 @@ return lines
 end
 
 last17 = ""
-function read_text(auto)
+function read_text(args, auto)
 local text = get_text()
 local lines = text_to_lines(text)
 if auto then
@@ -187,6 +187,34 @@ end
 
 function trim(s)
 return s:gsub("^%s*(.-)%s*$", "%1")
+end
+
+function parse_menu_header()
+local ptr = 0xcf81
+local results = {}
+results.flags = memory.readbyte(ptr)
+results.start_y = memory.readbyte(ptr+1)
+results.start_x = memory.readbyte(ptr+2)
+results.end_y = memory.readbyte(ptr+3)
+results.end_x = memory.readbyte(ptr+4)
+results.ptr = memory.readword(ptr+5)
+return results
+end
+
+function get_outer_menu_text(text)
+local header = parse_menu_header()
+local lines = text_to_lines(text)
+local s = ""
+for i = header.end_y+1, 18 do
+local line = trim(lines[i])
+if i == 15 and line == trim(last17) then
+line = ""
+end
+if line ~= "" then
+s = s .. line .. "\n"
+end
+end
+return s
 end
 
 function read_coords()
@@ -704,13 +732,23 @@ text_updated_counter = counter
 oldtext = text
 end
 if want_read and (counter - text_updated_counter) >= 20 then
+-- if we're in a menu
 if menu_pos ~= nil then
+-- if the menu outer text changed
+outer_text = get_outer_menu_text(text)
+if last_outer_text ~= outer_text then
+-- probably a different menu, mom's questions cause this
+if outer_text ~= "" then
+nvda.say(outer_text)
+end
+last_outer_text = outer_text
+end
 read_menu_item(text, menu_pos)
 else
 if in_options then
 in_options = false
 end
-read_text(true)
+read_text("", true)
 end
 want_read = false
 end
