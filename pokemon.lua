@@ -167,15 +167,26 @@ end
 return lines
 end
 
-function read_text()
+last17 = ""
+function read_text(auto)
 local text = get_text()
 local lines = text_to_lines(text)
+if auto then
+if trim(lines[15]) == trim(last17) then
+lines[15] = ""
+end
+last17 = lines[17]
+end
 for i, line in pairs(lines) do
-line = line:gsub("^%s*(.-)%s*$", "%1")
+line = trim(line)
 if line ~= "" then
 nvda.say(line)
 end
 end
+end
+
+function trim(s)
+return s:gsub("^%s*(.-)%s*$", "%1")
 end
 
 function read_coords()
@@ -699,7 +710,7 @@ else
 if in_options then
 in_options = false
 end
-read_text()
+read_text(true)
 end
 want_read = false
 end
