@@ -232,6 +232,8 @@ end
 function get_map_name(mapid)
 if names[mapid] ~= nil and names[mapid]["map"] ~= nil then
 return names[mapid]["map"]
+elseif default_names[mapid] ~= nil and default_names[mapid].map ~= nil then
+return default_names[mapid].map
 else
 return ""
 end
@@ -634,6 +636,11 @@ res, names = load_table("names.lua")
 if res == nil then
 tolk.say("Unable to load names file.")
 names = {}
+end
+res, default_names = load_table("default_names.lua")
+if res == nil then
+tolk.say("Unable to load default names file.")
+default_names = {}
 end
 
 counter = 0
