@@ -7,6 +7,7 @@ SOUTH = 4
 NORTH = 8
 -- characters table
 dofile("chars.lua")
+dofile("sprites.lua")
 
 function load_table(file)
 local res, t
@@ -176,6 +177,7 @@ local ptr = 0xd71e+16 -- skip the player
 local liveptr = 0xd81e -- live objects
 local results = {}
 for i = 1, 15 do
+local sprite = memory.readbyte(ptr+0x01)
 local y = memory.readbyte(ptr+0x02)
 local x = memory.readbyte(ptr+0x03)
 local object_struct = memory.readbyte(ptr)
@@ -189,6 +191,9 @@ x = memory.readbyte(l+0x12)
 y = memory.readbyte(l+0x13)
 end
 local name = "Object " .. i .. string.format(", %x", ptr)
+if sprites[sprite] ~= nil then
+name = sprites[sprite]
+end
 if y ~= 255 then
 if memory.readbyte(liveptr+i) == 0 then
 table.insert(results, {x=x-4, y=y-4, name=name, type="object", id="object_" .. i})
