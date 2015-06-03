@@ -558,6 +558,7 @@ inpassible_tiles = {
 [41] = true;
 [145]=true;
 [149] = true;
+[178] = true;
 }
 
 function rename_current(name)
