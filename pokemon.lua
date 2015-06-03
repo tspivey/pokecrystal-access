@@ -8,6 +8,19 @@ NORTH = 8
 -- characters table
 dofile("chars.lua")
 dofile("sprites.lua")
+dofile("fonts.lua")
+
+function is_printable_screen()
+local s = ""
+for i = 0, 15 do
+s = s .. string.char(memory.readbyte(0x8800+i))
+end
+if fonts[s] then
+return true
+else
+return false
+end
+end
 
 function load_table(file)
 local res, t
@@ -42,6 +55,7 @@ end
 
 function get_text_lines()
 local raw_text = memory.readbyterange(0xc4a0, 360)
+local printable = is_printable_screen()
 local lines = {}
 local line = ""
 local menu_position = nil
@@ -54,7 +68,11 @@ end
 if i+j == 359 and char == 0xee then
 char = " "
 end
+if printable then
 char = translate(char)
+else
+char = " "
+end
 line = line .. char
 end
 table.insert(lines, line)
