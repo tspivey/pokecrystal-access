@@ -625,12 +625,8 @@ write_names()
 end
 
 function read_mapname()
-local id = get_map_id()
-if names[id] == nil or names[id]["map"] == nil then
-tolk.say("unknown")
-else
-tolk.say(names[id]["map"])
-end
+local name = get_map_name(get_map_id())
+tolk.say(name)
 end
 
 function read_menu_item(lines, pos)
