@@ -222,6 +222,14 @@ end
 end
 ptr = ptr + 16
 end
+local collisions = get_map_collisions()
+for y = 0, #collisions do
+for x = 0, #collisions[0] do
+if collisions[y][x] == 147 then
+table.insert(results, {name="PC", x=x, y=y, id="pc", type="object"})
+end
+end
+end
 return results
 end
 
