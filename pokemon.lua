@@ -194,6 +194,8 @@ function get_objects()
 local ptr = 0xd71e+16 -- skip the player
 local liveptr = 0xd81e -- live objects
 local results = {}
+local width = memory.readbyteunsigned(0xd19f)
+local height = memory.readbyteunsigned(0xd19e)
 for i = 1, 15 do
 local sprite = memory.readbyte(ptr+0x01)
 local y = memory.readbyte(ptr+0x02)
@@ -212,7 +214,7 @@ local name = "Object " .. i .. string.format(", %x", ptr)
 if sprites[sprite] ~= nil then
 name = sprites[sprite]
 end
-if y ~= 255 then
+if y ~= 255 and y-4 <= height*2 and x-4 <= width*2 then
 if memory.readbyte(liveptr+i) == 0 then
 table.insert(results, {x=x-4, y=y-4, name=name, type="object", id="object_" .. i})
 end
