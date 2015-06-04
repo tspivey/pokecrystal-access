@@ -1,6 +1,7 @@
 require "a-star"
 serpent = require "serpent"
-FLAGFILE = "flag"
+scriptpath = debug.getinfo(1, "S").source:sub(2):match("^.*\\")
+FLAGFILE = scriptpath .. "flag"
 EAST = 1
 WEST = 2
 SOUTH = 4
@@ -330,9 +331,9 @@ end
 memory.registerexec(0x292c, function()
 local type = memory.readbyteunsigned(0xd4e4)
 if type == 0x18 then
-audio.play("sounds\\grass.wav", 0, 0, 30)
+audio.play(scriptpath .. "sounds\\grass.wav", 0, 0, 30)
 else
-audio.play("sounds\\step.wav", 0, 0, 30)
+audio.play(scriptpath .. "sounds\\step.wav", 0, 0, 30)
 end
 end)
 
