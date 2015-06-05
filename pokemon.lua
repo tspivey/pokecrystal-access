@@ -645,6 +645,30 @@ if in_options and not lines[line+1]:match("^%s*$") then
 tolk.say(lines[line+1])
 end
 end
+BAR_LENGTH = 6
+
+function read_enemy_health()
+local function read_bar(addr)
+local count
+-- no bar here
+if memory.readbyte(addr+BAR_LENGTH) ~= 0x6b then
+return nil
+end
+local total = 0
+for i = 0, BAR_LENGTH - 1 do
+if memory.readbyte(addr+i) == 0x6a then
+total = total +1
+end
+end
+return total
+end
+local enemy = read_bar(0xc4a0+(2*20)+4)
+if enemy == nil then
+tolk.say("no bar found")
+else
+tolk.say(string.format("%d of %d", enemy, BAR_LENGTH))
+end
+end
 
 commands = {
 coords = {read_coords, true};
@@ -657,6 +681,7 @@ name = {rename_current, true};
 text = {read_text, false};
 mapname = {rename_map, true};
 current_mapname = {read_mapname, true};
+read_enemy_health = {read_enemy_health, false},
 }
 
 assert(package.loadlib("luaTolk.dll", "luaopen_luaTolk"))()

@@ -6,6 +6,7 @@ f3::flagwrite("next")
 f4::flagwrite("text")
 f5::flagwrite("tiles")
 f6::flagwrite("coords")
+f7::flagwrite("read_enemy_health")
 /::flagwrite("pathfind")
 +f1::flagwrite("current_mapname")
 +f2::
