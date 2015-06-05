@@ -94,7 +94,7 @@ end
 for i, line in pairs(lines) do
 line = trim(line)
 if line ~= "" then
-tolk.say(line)
+tolk.output(line)
 end
 end
 end
@@ -135,11 +135,11 @@ function read_coords()
 local y = memory.readbyte(0xdcb7)
 local x = memory.readbyte(0xdcb8)
 if not on_map() then
-tolk.say("Not on a map")
+tolk.output("Not on a map")
 return
 end
 
-tolk.say("x " .. x .. ", y " .. y)
+tolk.output("x " .. x .. ", y " .. y)
 end
 
 function get_warps()
@@ -333,7 +333,7 @@ local down = memory.readbyte(0xc2fa)
 local up = memory.readbyte(0xc2fb)
 local left = memory.readbyte(0xc2fc)
 local right = memory.readbyte(0xc2fd)
-tolk.say(string.format("up %d down %d left %d right %d", up, down, left, right))
+tolk.output(string.format("up %d down %d left %d right %d", up, down, left, right))
 end
 
 memory.registerexec(0x292c, function()
@@ -357,12 +357,12 @@ res, data = flagged()
 if not res then
 return
 end
-tolk.stop()
+tolk.silence()
 local command, args = data:match("^([a-z_]+) *(.*)$")
 if commands[command] ~= nil then
 local fn, needs_map = unpack(commands[command])
 if needs_map and not on_map() then
-tolk.say("Not on a map.")
+tolk.output("Not on a map.")
 return
 end
 fn(args)
@@ -420,7 +420,7 @@ end
 if item.x then
 s = s .. ": " .. direction(x, y, item.x, item.y)
 end
-tolk.say(s)
+tolk.output(s)
 end
 
 function get_map_blocks()
@@ -515,7 +515,7 @@ dest_x = obj.x
 dest_y = obj.y
 end
 if dest_x == nil or dest_y == nil then
-tolk.say("no path")
+tolk.output("no path")
 return
 end
 if inpassible_tiles[collisions[dest_y][dest_x]] then
@@ -561,7 +561,7 @@ return true
 end -- valid
 path = astar.path(start, dest, allnodes, true, valid)
 if not path then
-tolk.say("no path")
+tolk.output("no path")
 return
 end
 local function same_direction(n1, n2)
@@ -576,12 +576,12 @@ for i, node in ipairs(path) do
 if i > 1 then
 local last = path[i-1]
 if not same_direction(start, node) then
-tolk.say(direction(start.x, start.y, last.x, last.y))
+tolk.output(direction(start.x, start.y, last.x, last.y))
 start = last
 end
 -- handle the last direction change in the path
 if i == #path then
-tolk.say(direction(start.x, start.y, node.x, node.y))
+tolk.output(direction(start.x, start.y, node.x, node.y))
 end
 end -- i > 1
 end -- for
@@ -618,7 +618,7 @@ function write_names()
 local file = io.open("names.lua", "wb")
 file:write(serpent.block(names, {comment=false}))
 io.close(file)
-tolk.say("names saved")
+tolk.output("names saved")
 end
 function rename_map(name)
 local id = get_map_id()
@@ -634,15 +634,15 @@ end
 
 function read_mapname()
 local name = get_map_name(get_map_id())
-tolk.say(name)
+tolk.output(name)
 end
 
 function read_menu_item(lines, pos)
 local line = math.floor(pos/20)+1
 local l = lines[line]
-tolk.say(l)
+tolk.output(l)
 if in_options and not lines[line+1]:match("^%s*$") then
-tolk.say(lines[line+1])
+tolk.output(lines[line+1])
 end
 end
 BAR_LENGTH = 6
@@ -664,9 +664,9 @@ return total
 end
 local enemy = read_bar(0xc4a0+(2*20)+4)
 if enemy == nil then
-tolk.say("no bar found")
+tolk.output("no bar found")
 else
-tolk.say(string.format("%d of %d", enemy, BAR_LENGTH))
+tolk.output(string.format("%d of %d", enemy, BAR_LENGTH))
 end
 end
 
@@ -684,17 +684,17 @@ current_mapname = {read_mapname, true};
 read_enemy_health = {read_enemy_health, false},
 }
 
-assert(package.loadlib("luaTolk.dll", "luaopen_luaTolk"))()
+tolk = require "tolk"
 assert(package.loadlib("audio.dll", "luaopen_audio"))()
-tolk.say("ready")
+tolk.output("ready")
 res, names = load_table("names.lua")
 if res == nil then
-tolk.say("Unable to load names file.")
+tolk.output("Unable to load names file.")
 names = {}
 end
 res, default_names = load_table("default_names.lua")
 if res == nil then
-tolk.say("Unable to load default names file.")
+tolk.output("Unable to load default names file.")
 default_names = {}
 end
 
@@ -720,7 +720,7 @@ outer_text = get_outer_menu_text(text)
 if not in_options and last_outer_text ~= outer_text then
 -- probably a different menu, mom's questions cause this
 if outer_text ~= "" then
-tolk.say(outer_text)
+tolk.output(outer_text)
 end
 last_outer_text = outer_text
 end
