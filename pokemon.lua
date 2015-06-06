@@ -1,5 +1,6 @@
 require "a-star"
 serpent = require "serpent"
+local inputbox = require "Inputbox"
 scriptpath = debug.getinfo(1, "S").source:sub(2):match("^.*\\")
 FLAGFILE = scriptpath .. "flag"
 EAST = 1
@@ -352,21 +353,53 @@ in_options = true
 end
 end)
 
+function compare(t1, t2)
+if #t1 ~= #t2 then
+return false
+end
+for i, v in ipairs(t1) do
+if t1[i] ~= t2[i] then
+return false
+end
+end
+return true
+end
+
+old_pressed_keys = {}
 function handle_user_actions()
-res, data = flagged()
-if not res then
+local kbd = input.read()
+local pressed_keys = {}
+kbd.xmouse = nil
+kbd.ymouse = nil
+for k, v in pairs(kbd) do
+if v then
+table.insert(pressed_keys, k)
+end
+end
+table.sort(pressed_keys)
+
+if #pressed_keys == 0 or compare(pressed_keys, old_pressed_keys) then
+old_pressed_keys = pressed_keys
+return
+end
+old_pressed_keys = pressed_keys
+local command
+for keys, cmd in pairs(commands) do
+if compare(keys, pressed_keys) then
+command = cmd
+break
+end
+end
+if command == nil then
 return
 end
 tolk.silence()
-local command, args = data:match("^([a-z_]+) *(.*)$")
-if commands[command] ~= nil then
-local fn, needs_map = unpack(commands[command])
+local fn, needs_map = unpack(command)
 if needs_map and not on_map() then
 tolk.output("Not on a map.")
-return
-end
+else
 fn(args)
-end
+end -- not on map
 end
 
 function read_current_item()
@@ -597,17 +630,18 @@ inpassible_tiles = {
 [178] = true;
 }
 
-function rename_current(name)
-if not on_map() then
-return
-end
+function rename_current()
 local info = get_map_info()
 reset_current_item_if_needed(info)
 local id = get_map_id()
 local obj_id = info.objects[current_item].id
+name = inputbox.inputbox("Name object", "Enter a new name for " .. info.objects[current_item].name)
+if name == nil then
+return
+end
 names[id] = names[id] or {}
-if name ~= "" then
-names[id][obj_id] = name
+if trim(name) ~= "" then
+names[id][obj_id] = trim(name)
 else
 names[id][obj_id] = nil
 end
@@ -620,12 +654,16 @@ file:write(serpent.block(names, {comment=false}))
 io.close(file)
 tolk.output("names saved")
 end
-function rename_map(name)
+function rename_map()
 local id = get_map_id()
 local obj_id = "map"
+name = inputbox.inputbox("Rename map", "Enter a new name for " .. names[id][obj_id])
+if name == nil then
+return
+end
 names[id] = names[id] or {}
-if name ~= "" then
-names[id][obj_id] = name
+if trim(name) ~= "" then
+names[id][obj_id] = trim(name)
 else
 names[id][obj_id] = nil
 end
@@ -671,17 +709,16 @@ end
 end
 
 commands = {
-coords = {read_coords, true};
-tiles = {read_tiles, true};
-current = {read_current_item, true};
-next = {read_next_item, true};
-previous = {read_previous_item, true};
-pathfind = {pathfind, true};
-name = {rename_current, true};
-text = {read_text, false};
-mapname = {rename_map, true};
-current_mapname = {read_mapname, true};
-read_enemy_health = {read_enemy_health, false},
+[{"C"}] = {read_coords, true};
+[{"J"}] = {read_previous_item, true};
+[{"K"}] = {read_current_item, true};
+[{"L"}] = {read_next_item, true};
+[{"P"}] = {pathfind, true};
+[{"N"}] = {rename_current, true};
+[{"T"}] = {read_text, false};
+[{"N", "shift"}] = {rename_map, true};
+[{"M", "shift"}] = {read_mapname, true};
+[{"H"}] = {read_enemy_health, false},
 }
 
 tolk = require "tolk"
