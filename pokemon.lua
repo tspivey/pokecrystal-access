@@ -338,6 +338,20 @@ end
 return s
 end
 
+function only_direction(x, y, destx, desty)
+local s = ""
+if y > desty then
+return "up"
+elseif y < desty then
+return "down"
+elseif x > destx then
+return "left"
+elseif x < destx then
+return "right"
+end
+return s
+end
+
 function read_tiles()
 local down = memory.readbyte(0xc2fa)
 local up = memory.readbyte(0xc2fb)
@@ -589,7 +603,15 @@ end
 end -- x
 end -- y
 local valid = function (node, neighbor)
-if astar.dist_between(node, neighbor) ~= 1 then
+if node.type == 0xa0 and neighbor.x == node.x+2 and neighbor.y == node.y then
+return true
+elseif node.type == 0xa1 and neighbor.x == node.x-2 and neighbor.y == node.y then
+return true
+elseif node.type == 0xa2 and neighbor.x == node.x and neighbor.y == node.y-y then
+return true
+elseif node.type == 0xa3 and neighbor.x == node.x and neighbor.y == node.y+2 then
+return true
+elseif astar.dist_between(node, neighbor) ~= 1 then
 return false
 elseif inpassible_tiles[neighbor.type] then
 return false
@@ -609,19 +631,16 @@ return false
 end
 end
 local start = path[1]
+local new_path = {}
 for i, node in ipairs(path) do
 if i > 1 then
 local last = path[i-1]
-if not same_direction(start, node) then
-tolk.output(direction(start.x, start.y, last.x, last.y))
-start = last
-end
--- handle the last direction change in the path
-if i == #path then
-tolk.output(direction(start.x, start.y, node.x, node.y))
-end
+table.insert(new_path, only_direction(last.x, last.y, node.x, node.y))
 end -- i > 1
 end -- for
+for _, v in ipairs(group_unique_items(new_path)) do
+tolk.output(v[2] .. " " .. v[1])
+end
 end -- function
 
 inpassible_tiles = {
@@ -710,6 +729,25 @@ tolk.output("no bar found")
 else
 tolk.output(string.format("%d of %d", enemy, BAR_LENGTH))
 end
+end
+
+function group_unique_items(t)
+if #t == 0 then return t end
+if #t == 1 then return {{t[1], 1}} end
+local nt = {}
+local last = t[1]
+local last_count = 1
+for i = 2, #t do
+if t[i] == last then
+last_count = last_count + 1
+else
+table.insert(nt, {last, last_count})
+last = t[i]
+last_count = 1
+end
+end
+table.insert(nt, {last, last_count})
+return nt
 end
 
 commands = {
