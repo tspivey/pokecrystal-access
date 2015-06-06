@@ -750,6 +750,18 @@ table.insert(nt, {last, last_count})
 return nt
 end
 
+function read_keyboard()
+local x = memory.readbyte(0xc330)
+local y = memory.readbyte(0xc331)
+local lines = get_text_lines()
+local col = x*2+3
+local row = y*2+9
+-- sometimes the word/character is right aligned, like LOWER, DEL and END
+local word = lines[row]:sub(col)
+word = word:match("%s*(%S*)")
+tolk.output(word)
+end
+
 commands = {
 [{"C"}] = {read_coords, true};
 [{"J"}] = {read_previous_item, true};
@@ -780,12 +792,29 @@ end
 counter = 0
 oldtext = "" -- last text seen
 current_item = nil
+in_keyboard = false
+old_kbd_col = nil
+old_kbd_row = nil
 while true do
 emu.frameadvance()
 counter = counter + 1
 handle_user_actions()
 local text_lines, menu_pos = get_text_lines()
 local text = table.concat(text_lines, "")
+if text_lines[17]:match("DEL   END") ~= nil then
+in_keyboard = true
+else
+in_keyboard = false
+end
+if in_keyboard then
+col = memory.readbyte(0xc330)
+row = memory.readbyte(0xc331)
+if row ~= old_kbd_row or col ~= old_kbd_col then
+read_keyboard()
+old_kbd_row = row
+old_kbd_col = col
+end
+end
 if text ~= oldtext then
 want_read = true
 text_updated_counter = counter
