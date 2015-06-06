@@ -10,7 +10,7 @@ void free_string(const char *s);
 local function inputbox(title, caption, default)
 default = default or ""
 local res = dll.InputBox(encoding.to_utf16(title), encoding.to_utf16(caption), encoding.to_utf16(default))
-if res ~= 0 then
+if res ~= nil then
 local s = encoding.to_utf8(ffi.cast("const wchar_t *", res))
 dll.free_string(res)
 return s
