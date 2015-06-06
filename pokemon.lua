@@ -144,7 +144,7 @@ tolk.output("x " .. x .. ", y " .. y)
 end
 
 function get_warps()
-local mapgroup, mapnumber = get_map_gn()
+local current_mapid = get_map_id()
 local eventstart = memory.readword(0xd1a6)
 local bank = memory.readbyte(0xd1a3)
 eventstart = (bank*16384) + (eventstart - 16384)
@@ -161,7 +161,9 @@ local mapname = get_map_name(mapid)
 if mapname ~= "" then
 name = mapname
 end
-table.insert(results, {x=warpx, y=warpy, name=name, type="warp", id="warp_" .. i})
+local warp = {x=warpx, y=warpy, name=name, type="warp", id="warp_" .. i}
+warp.name = get_name(current_mapid, warp)
+table.insert(results, warp)
 end
 return results
 end
@@ -169,7 +171,7 @@ end
 function get_signposts()
 local eventstart = memory.readword(0xd1a6)
 local bank = memory.readbyte(0xd1a3)
-local mapgroup, mapnumber = get_map_gn()
+local mapid = get_map_id()
 eventstart = (bank*16384) + (eventstart - 16384)
 local warps = memory.gbromreadbyte(eventstart+2)
 local ptr = eventstart + 3 -- start of warp table
@@ -186,10 +188,15 @@ local posty = memory.gbromreadbyte(ptr)
 local postx = memory.gbromreadbyte(ptr+1)
 local name = "signpost " .. i
 local post = {x=postx, y=posty, name=name, type="signpost", id="signpost_" .. i}
+post.name = get_name(mapid, post)
 table.insert(results, post)
 ptr = ptr + 5 -- point at the next one
 end
 return results
+end
+
+function get_name(mapid, obj)
+return (names[mapid] or {})[obj.id] or obj.name
 end
 
 function get_objects()
@@ -198,6 +205,7 @@ local liveptr = 0xd81e -- live objects
 local results = {}
 local width = memory.readbyteunsigned(0xd19f)
 local height = memory.readbyteunsigned(0xd19e)
+local mapid = get_map_id()
 for i = 1, 15 do
 local sprite = memory.readbyte(ptr+0x01)
 local y = memory.readbyte(ptr+0x02)
@@ -218,7 +226,9 @@ name = sprites[sprite]
 end
 if y ~= 255 and y-4 <= height*2 and x-4 <= width*2 then
 if memory.readbyte(liveptr+i) == 0 then
-table.insert(results, {x=x-4, y=y-4, name=name, type="object", id="object_" .. i})
+local obj = {x=x-4, y=y-4, name=name, type="object", id="object_" .. i}
+obj.name = get_name(mapid, obj)
+table.insert(results, obj)
 end
 end
 ptr = ptr + 16
@@ -445,10 +455,7 @@ function read_item(item)
 local y = memory.readbyte(0xdcb7)
 local x = memory.readbyte(0xdcb8)
 local map_id = get_map_id()
-local s = item.name
-if names[map_id] ~= nil and names[map_id][item.id] ~= nil then
-s = names[map_id][item.id]
-end
+local s = get_name(mapid, item)
 if item.x then
 s = s .. ": " .. direction(x, y, item.x, item.y)
 end
@@ -632,7 +639,7 @@ local info = get_map_info()
 reset_current_item_if_needed(info)
 local id = get_map_id()
 local obj_id = info.objects[current_item].id
-name = inputbox.inputbox("Name object", "Enter a new name for " .. info.objects[current_item].name)
+name = inputbox.inputbox("Name object", "Enter a new name for " .. info.objects[current_item].name, info.objects[current_item].name)
 if name == nil then
 return
 end
@@ -654,7 +661,7 @@ end
 function rename_map()
 local id = get_map_id()
 local obj_id = "map"
-name = inputbox.inputbox("Rename map", "Enter a new name for " .. names[id][obj_id])
+name = inputbox.inputbox("Rename map", "Enter a new name for " .. names[id][obj_id], names[id][obj_id])
 if name == nil then
 return
 end
