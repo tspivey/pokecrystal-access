@@ -314,7 +314,6 @@ end
 end
 
 function direction(x, y, destx, desty)
-print("x " .. x .. " y " .. y .. " destx " .. destx .. " desty " .. desty)
 local s = ""
 if y > desty then
 s = y-desty .. " up"
@@ -552,7 +551,6 @@ tolk.output("no path")
 return
 end
 if inpassible_tiles[collisions[dest_y][dest_x]] then
-print(dest_y .. " " .. dest_x .. " is inpassible, searching")
 local to_search = {
 {dest_y+1, dest_x};
 {dest_y-1, dest_x};
@@ -566,7 +564,6 @@ for i, pos in ipairs(to_search) do
 if collisions[pos[1]] ~= nil and collisions[pos[1]][pos[2]] ~= nil and not inpassible_tiles[collisions[pos[1]][pos[2]]] then
 dest_y = pos[1]
 dest_x = pos[2]
-print("found " .. dest_y .. " " .. dest_x)
 break
 end
 end
