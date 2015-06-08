@@ -2,7 +2,6 @@ require "a-star"
 serpent = require "serpent"
 local inputbox = require "Inputbox"
 scriptpath = debug.getinfo(1, "S").source:sub(2):match("^.*\\")
-FLAGFILE = scriptpath .. "flag"
 EAST = 1
 WEST = 2
 SOUTH = 4
@@ -41,18 +40,6 @@ if chars[char] then
 return chars[char]
 else
 return " "
-end
-end
-
-function flagged()
-local f = io.open(FLAGFILE, "r")
-if f ~= nil then
-local data = f:read("*a")
-io.close(f)
-os.remove(FLAGFILE)
-return true, data
-else
-return false, nil
 end
 end
 
