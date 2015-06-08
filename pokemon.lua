@@ -7,6 +7,7 @@ EAST = 1
 WEST = 2
 SOUTH = 4
 NORTH = 8
+TEXTBOX_PATTERN = "\x79\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7b"
 -- characters table
 dofile("chars.lua")
 dofile("sprites.lua")
@@ -55,20 +56,23 @@ return false, nil
 end
 end
 
-function get_text_lines()
+function get_screen()
 local raw_text = memory.readbyterange(0xc4a0, 360)
 local printable = is_printable_screen()
 local lines = {}
+local tile_lines = {}
 local line = ""
+local tile_line = ""
 local menu_position = nil
 for i = 1, 360, 20 do
 for j = 0, 19 do
 local char = raw_text[i+j]
+tile_line = tile_line .. string.char(char)
 if char == 0xed then
 menu_position = i
 end
 if i+j == 359 and char == 0xee then
-char = " "
+char = 0x7f
 end
 if printable then
 char = translate(char)
@@ -78,14 +82,17 @@ end
 line = line .. char
 end
 table.insert(lines, line)
+table.insert(tile_lines, tile_line)
 line = ""
+tile_line = ""
 end -- i
-return lines, menu_position
+return {lines=lines, menu_position=menu_position, tile_lines=tile_lines, keyboard_showing=keyboard_showing,
+get_outer_menu_text=get_outer_menu_text, get_textbox=get_textbox}
 end
 
 last17 = ""
 function read_text(args, auto)
-local lines = get_text_lines()
+local lines = get_screen().lines
 if auto then
 if trim(lines[15]) == trim(last17) then
 lines[15] = ""
@@ -116,9 +123,9 @@ results.ptr = memory.readword(ptr+5)
 return results
 end
 
-function get_outer_menu_text(text)
+function get_outer_menu_text(screen)
 local header = parse_menu_header()
-local lines = get_text_lines()
+local lines = get_screen().lines
 local s = ""
 for i = header.end_y+1, 18 do
 local line = trim(lines[i])
@@ -768,7 +775,7 @@ end
 function read_keyboard()
 local x = memory.readbyte(0xc330)
 local y = memory.readbyte(0xc331)
-local lines = get_text_lines()
+local lines = get_screen().lines
 local col = x*2+3
 local row = y*2+9
 -- sometimes the word/character is right aligned, like LOWER, DEL and END
@@ -809,6 +816,23 @@ end
 return data[i]
 end
 
+function keyboard_showing(screen)
+if screen.lines[17]:match("DEL   END") ~= nil then
+return true
+end
+return false
+end
+
+function get_textbox(screen)
+local lines = {}
+if screen.tile_lines[13] == TEXTBOX_PATTERN then
+for i = 14, 17 do
+table.insert(lines, screen.lines[i])
+end
+return table.concat(lines, "")
+end
+return nil
+end
 commands = {
 [{"C"}] = {read_coords, true};
 [{"J"}] = {read_previous_item, true};
@@ -846,14 +870,9 @@ while true do
 emu.frameadvance()
 counter = counter + 1
 handle_user_actions()
-local text_lines, menu_pos = get_text_lines()
-local text = table.concat(text_lines, "")
-if text_lines[17]:match("DEL   END") ~= nil then
-in_keyboard = true
-else
-in_keyboard = false
-end
-if in_keyboard then
+local screen = get_screen()
+local text = table.concat(screen.lines, "")
+if screen:keyboard_showing() then
 col = memory.readbyte(0xc330)
 row = memory.readbyte(0xc331)
 if row ~= old_kbd_row or col ~= old_kbd_col then
@@ -869,9 +888,9 @@ oldtext = text
 end
 if want_read and (counter - text_updated_counter) >= 20 then
 -- if we're in a menu
-if menu_pos ~= nil then
+if screen.menu_position ~= nil then
 -- if the menu outer text changed
-outer_text = get_outer_menu_text(text)
+outer_text = screen:get_outer_menu_text()
 if not in_options and last_outer_text ~= outer_text then
 -- probably a different menu, mom's questions cause this
 if outer_text ~= "" then
@@ -879,7 +898,7 @@ tolk.output(outer_text)
 end
 last_outer_text = outer_text
 end
-read_menu_item(text_lines, menu_pos)
+read_menu_item(screen.lines, screen.menu_position)
 else
 if in_options then
 in_options = false
