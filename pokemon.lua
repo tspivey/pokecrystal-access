@@ -833,6 +833,17 @@ return table.concat(lines, "")
 end
 return nil
 end
+
+function handle_keyboard()
+col = memory.readbyte(0xc330)
+row = memory.readbyte(0xc331)
+if row ~= old_kbd_row or col ~= old_kbd_col then
+read_keyboard()
+old_kbd_row = row
+old_kbd_col = col
+end -- if the row/col changed
+end -- handle_keyboard
+
 commands = {
 [{"C"}] = {read_coords, true};
 [{"J"}] = {read_previous_item, true};
@@ -870,17 +881,11 @@ while true do
 emu.frameadvance()
 counter = counter + 1
 handle_user_actions()
-local screen = get_screen()
+screen = get_screen()
 local text = table.concat(screen.lines, "")
 if screen:keyboard_showing() then
-col = memory.readbyte(0xc330)
-row = memory.readbyte(0xc331)
-if row ~= old_kbd_row or col ~= old_kbd_col then
-read_keyboard()
-old_kbd_row = row
-old_kbd_col = col
-end
-end
+handle_keyboard()
+end -- handling keyboard
 if text ~= oldtext then
 want_read = true
 text_updated_counter = counter
