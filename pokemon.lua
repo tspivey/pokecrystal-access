@@ -78,21 +78,30 @@ get_outer_menu_text=get_outer_menu_text, get_textbox=get_textbox}
 end
 
 last17 = ""
-function read_text(args, auto)
+function read_text(auto)
 local lines = get_screen().lines
 if auto then
 if trim(lines[15]) == trim(last17) then
 lines[15] = ""
 end
 last17 = lines[17]
+local textbox = get_textbox()
+if textbox then
+output_lines(textbox)
+return
+end -- textbox
+end -- auto
+output_lines(lines)
 end
+
+function output_lines(lines)
 for i, line in pairs(lines) do
 line = trim(line)
 if line ~= "" then
 tolk.output(line)
 end
 end
-end
+end -- output_lines
 
 function trim(s)
 return s:gsub("^%s*(.-)%s*$", "%1")
@@ -810,13 +819,13 @@ end
 return false
 end
 
-function get_textbox(screen)
+function get_textbox()
 local lines = {}
 if screen.tile_lines[13] == TEXTBOX_PATTERN then
 for i = 14, 17 do
 table.insert(lines, screen.lines[i])
 end
-return table.concat(lines, "")
+return lines
 end
 return nil
 end
@@ -895,7 +904,7 @@ else
 if in_options then
 in_options = false
 end
-read_text("", true)
+read_text(true)
 end
 want_read = false
 end
