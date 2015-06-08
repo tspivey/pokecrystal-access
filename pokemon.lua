@@ -733,7 +733,7 @@ end
 end
 BAR_LENGTH = 6
 
-function read_enemy_health()
+function get_enemy_health()
 local function read_bar(addr)
 local count
 -- no bar here
@@ -750,9 +750,18 @@ return total
 end
 local enemy = read_bar(0xc4a0+(2*20)+4)
 if enemy == nil then
+return nil
+else
+return string.format("%d of %d", enemy, BAR_LENGTH)
+end
+end
+
+function read_enemy_health()
+local health = get_enemy_health()
+if health == nil then
 tolk.output("no bar found")
 else
-tolk.output(string.format("%d of %d", enemy, BAR_LENGTH))
+tolk.output(enemy_health)
 end
 end
 
@@ -847,6 +856,18 @@ old_kbd_col = col
 end -- if the row/col changed
 end -- handle_keyboard
 
+function read_health_if_needed()
+if not (last_menu_pos == nil and screen.menu_position ~= nil) then
+return
+end
+enemy_health = get_enemy_health()
+if enemy_health == nil then
+return
+end
+tolk.output(screen.lines[11])
+tolk.output("enemy health: " .. enemy_health)
+end
+
 commands = {
 [{"C"}] = {read_coords, true};
 [{"J"}] = {read_previous_item, true};
@@ -906,8 +927,11 @@ tolk.output(outer_text)
 end
 last_outer_text = outer_text
 end
+read_health_if_needed()
 read_menu_item(screen.lines, screen.menu_position)
+last_menu_pos = screen.menu_position
 else
+last_menu_pos = nil
 if in_options then
 in_options = false
 end
