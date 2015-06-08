@@ -523,8 +523,59 @@ return collisions
 end
 
 function find_path_to(obj)
+local path
+local width = memory.readbyteunsigned(0xd19f)
+local height = memory.readbyteunsigned(0xd19e)
+
+if obj.type == "connection" then
+if obj.direction == "north" then
+dest_y = 0
+for dest_x = 0, width*2-1 do
+if not inpassible_tiles[get_collision_data_xy(dest_x+4, dest_y+3)] then
+path = find_path_to_xy(dest_x, dest_y)
+end
+if path ~= nil then break end
+end
+elseif obj.direction == "south" then
+dest_y = height*2-1
+for dest_x = 0, width*2-1 do
+if not inpassible_tiles[get_collision_data_xy(dest_x+4, dest_y+5)] then
+path = find_path_to_xy(dest_x, dest_y)
+end
+if path ~= nil then break end
+end
+elseif obj.direction == "east" then
+dest_x = width*2-1
+for dest_y = 0, height*2-1 do
+if not inpassible_tiles[get_collision_data_xy(dest_x+5, dest_y+4)] then
+path = find_path_to_xy(dest_x, dest_y)
+end
+if path ~= nil then break end
+end
+elseif obj.direction == "west" then
+dest_x = 0
+for dest_y = 0, height*2-1 do
+if not inpassible_tiles[get_collision_data_xy(dest_x+3, dest_y+4)] then
+path = find_path_to_xy(dest_x, dest_y)
+end
+if path ~= nil then break end
+end
+end
+else
+path = find_path_to_xy(obj.x, obj.y, true)
+end
+if path == nil then
+tolk.output("no path")
+return
+end
+print(serpent.block(path))
+speak_path(clean_path(path))
+end
+
+function find_path_to_xy(dest_x, dest_y, search)
 local player_y = memory.readbyte(0xdcb7)
 local player_x = memory.readbyte(0xdcb8)
+print("finding path from " .. player_x .. " " .. player_y .. " to " .. dest_x .. " " .. dest_y)
 local collisions = get_map_collisions()
 local allnodes = {}
 local width = #collisions[0]
@@ -533,43 +584,6 @@ local dest = nil
 -- set all the objects to walls
 for i, object in ipairs(get_objects()) do
 collisions[object.y][object.x] = 7
-end
--- if searching for a connection, we scan the edge until we find a free tile.
-local function find_free_x(y)
-for x = 0, width do
-if not inpassible_tiles[collisions[y][x]] then
-return x
-end
-end
-end
-local function find_Free_y(x)
-for y = 0, #collisions do
-if not inpassible_tiles[collisions[y][x]] then
-return y
-end
-end
-end
-if obj.type == "connection" then
-if obj.direction == "north" then
-dest_y = 0
-dest_x = find_free_x(dest_y)
-elseif obj.direction == "south" then
-dest_y = #collisions
-dest_x = find_free_x(dest_y)
-elseif obj.direction == "east" then
-dest_x = width
-dest_y = find_Free_y(dest_x)
-elseif obj.direction == "west" then
-dest_x = 0
-dest_y = find_Free_y(dest_x)
-end
-else -- not a connection
-dest_x = obj.x
-dest_y = obj.y
-end
-if dest_x == nil or dest_y == nil then
-tolk.output("no path")
-return
 end
 if inpassible_tiles[collisions[dest_y][dest_x]] then
 local to_search = {
@@ -581,12 +595,16 @@ local to_search = {
 {dest_y, dest_x+2};
 {dest_y, dest_x-2};
 }
+if search then
 for i, pos in ipairs(to_search) do
 if collisions[pos[1]] ~= nil and collisions[pos[1]][pos[2]] ~= nil and not inpassible_tiles[collisions[pos[1]][pos[2]]] then
 dest_y = pos[1]
 dest_x = pos[2]
 break
 end
+end
+else
+return nil
 end
 end
 -- generate the all nodes list for pathfinding, and track the start and end nodes
@@ -619,17 +637,10 @@ end
 return true
 end -- valid
 path = astar.path(start, dest, allnodes, true, valid)
-if not path then
-tolk.output("no path")
-return
+return path
 end
-local function same_direction(n1, n2)
-if (n1.x ~= n2.x and n1.y == n2.y) or (n1.x == n2.x and n1.y ~= n2.y) then
-return true
-else
-return false
-end
-end
+
+function clean_path(path)
 local start = path[1]
 local new_path = {}
 for i, node in ipairs(path) do
@@ -638,7 +649,11 @@ local last = path[i-1]
 table.insert(new_path, only_direction(last.x, last.y, node.x, node.y))
 end -- i > 1
 end -- for
-for _, v in ipairs(group_unique_items(new_path)) do
+return group_unique_items(new_path)
+end
+
+function speak_path(path)
+for _, v in ipairs(path) do
 tolk.output(v[2] .. " " .. v[1])
 end
 end -- function
@@ -760,6 +775,38 @@ local row = y*2+9
 local word = lines[row]:sub(col)
 word = word:match("%s*(%S*)")
 tolk.output(word)
+end
+
+function get_block(mapx, mapy)
+local width = memory.readbyte(0xd19f)
+local row_width = width+6
+local ptr = 0xc801+row_width
+-- now we're on the second row, second column
+local skip_rows = math.floor(mapy/2)
+local skip_cols = math.floor(mapx/2)
+local block = memory.readbyte(ptr+(skip_rows*row_width)+skip_cols)
+return block
+end
+function get_collision_data(block)
+local collision_bank = memory.readbyteunsigned(0xd1df)
+local collision_addr = memory.readword(0xd1e0)
+collision_addr = (collision_bank * 16384) + (collision_addr - 16384)
+return memory.gbromreadbyterange(collision_addr+(block*4), 4)
+end
+
+function get_collision_data_xy(mapx, mapy)
+local block = get_block(mapx, mapy)
+if block == 0 then return 255 end
+local data = get_collision_data(block)
+if mapx % 2 == 0 then
+i = 1
+else
+i=2
+end
+if mapy%2 ~= 0 then
+i = i + 2
+end
+return data[i]
 end
 
 commands = {
