@@ -78,6 +78,7 @@ get_outer_menu_text=get_outer_menu_text, get_textbox=get_textbox}
 end
 
 last17 = ""
+last_textbox_text = nil
 function read_text(auto)
 local lines = get_screen().lines
 if auto then
@@ -87,8 +88,14 @@ end
 last17 = lines[17]
 local textbox = get_textbox()
 if textbox then
+textbox_text = table.concat(textbox, "")
+if textbox_text ~= last_textbox_text then
 output_lines(textbox)
+end
+last_textbox_text = textbox_text
 return
+else -- no textbox here
+last_textbox_text = nil
 end -- textbox
 end -- auto
 output_lines(lines)
