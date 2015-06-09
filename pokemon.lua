@@ -133,6 +133,10 @@ return results
 end
 
 function get_outer_menu_text(screen)
+local textbox = screen:get_textbox()
+if textbox then
+return trim(table.concat(textbox, " "))
+end
 local header = parse_menu_header()
 local lines = get_screen().lines
 local s = ""
