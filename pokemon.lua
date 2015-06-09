@@ -742,6 +742,9 @@ function read_menu_item(lines, pos)
 local line = math.floor(pos/20)+1
 local l = lines[line]
 tolk.output(l)
+if lines[line+1]:match('\xc2\xa5') then
+tolk.output(lines[line+1])
+end
 if in_options and not lines[line+1]:match("^%s*$") then
 tolk.output(lines[line+1])
 end
