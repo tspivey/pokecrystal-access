@@ -593,14 +593,12 @@ if path == nil then
 tolk.output("no path")
 return
 end
-print(serpent.block(path))
 speak_path(clean_path(path))
 end
 
 function find_path_to_xy(dest_x, dest_y, search)
 local player_y = memory.readbyte(0xdcb7)
 local player_x = memory.readbyte(0xdcb8)
-print("finding path from " .. player_x .. " " .. player_y .. " to " .. dest_x .. " " .. dest_y)
 local collisions = get_map_collisions()
 local allnodes = {}
 local width = #collisions[0]
