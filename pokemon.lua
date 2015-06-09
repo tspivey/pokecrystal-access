@@ -220,6 +220,7 @@ for i = 1, 15 do
 local sprite = memory.readbyte(ptr+0x01)
 local y = memory.readbyte(ptr+0x02)
 local x = memory.readbyte(ptr+0x03)
+local facing = memory.readbyte(ptr+0x04)
 local object_struct = memory.readbyte(ptr)
 -- we have map object structs, and object structs. If the first byte of the
 -- map object struct is not 0xff, use that to look up the object struct,
@@ -229,6 +230,7 @@ if object_struct ~= 0xff and y ~= 255 then
 local l = 0xd4fe+((object_struct-1)*40)
 x = memory.readbyte(l+0x12)
 y = memory.readbyte(l+0x13)
+facing = memory.readbyte(l+0xd)
 end
 local name = "Object " .. i .. string.format(", %x", ptr)
 if sprites[sprite] ~= nil then
@@ -236,7 +238,7 @@ name = sprites[sprite]
 end
 if y ~= 255 and y-4 <= height*2 and x-4 <= width*2 then
 if memory.readbyte(liveptr+i) == 0 then
-local obj = {x=x-4, y=y-4, name=name, type="object", id="object_" .. i}
+local obj = {x=x-4, y=y-4, name=name, type="object", id="object_" .. i, facing=facing}
 obj.name = get_name(mapid, obj)
 table.insert(results, obj)
 end
@@ -482,6 +484,9 @@ local map_id = get_map_id()
 local s = get_name(mapid, item)
 if item.x then
 s = s .. ": " .. direction(x, y, item.x, item.y)
+end
+if item.facing then
+s = s .. " facing " .. facing_to_string(item.facing)
 end
 tolk.output(s)
 end
@@ -866,6 +871,15 @@ return
 end
 tolk.output(screen.lines[11])
 tolk.output("enemy health: " .. enemy_health)
+end
+
+function facing_to_string(d)
+d = bit.rshift(d, 2)
+if d == 0 then return "down" end
+if d == 1 then return "up" end
+if d == 2 then return "left" end
+if d == 3 then return "right" end
+return "unknown"
 end
 
 commands = {
