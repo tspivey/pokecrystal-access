@@ -87,7 +87,7 @@ lines[15] = ""
 end
 last17 = lines[17]
 local textbox = get_textbox()
-if textbox and (screen.tile_lines[3]:match("\x60\x61") or screen.tile_lines[10]:match("\x60\x61")) then
+if textbox and should_read_textbox() then
 textbox_text = table.concat(textbox, "")
 if textbox_text ~= last_textbox_text then
 output_lines(textbox)
@@ -99,6 +99,12 @@ last_textbox_text = nil
 end -- textbox
 end -- auto
 output_lines(lines)
+end
+
+function should_read_textbox()
+if (screen.tile_lines[3]:match("\x60\x61") or screen.tile_lines[10]:match("\x60\x61")) then return true end
+if trim(screen.lines[15]) == "How many?" then return true end
+return false
 end
 
 function output_lines(lines)
