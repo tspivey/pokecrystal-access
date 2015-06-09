@@ -610,6 +610,11 @@ local dest = nil
 for i, object in ipairs(get_objects()) do
 collisions[object.y][object.x] = 7
 end
+for i, warp in ipairs(get_warps()) do
+if warp.x ~= dest_x and warp.y ~= dest_y then
+collisions[warp.y][warp.x] = 7
+end
+end
 if inpassible_tiles[collisions[dest_y][dest_x]] then
 local to_search = {
 {dest_y+1, dest_x};
