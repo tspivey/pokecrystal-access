@@ -87,7 +87,7 @@ lines[15] = ""
 end
 last17 = lines[17]
 local textbox = get_textbox()
-if textbox then
+if textbox and (screen.tile_lines[3]:match("\x60\x61") or screen.tile_lines[10]:match("\x60\x61")) then
 textbox_text = table.concat(textbox, "")
 if textbox_text ~= last_textbox_text then
 output_lines(textbox)
