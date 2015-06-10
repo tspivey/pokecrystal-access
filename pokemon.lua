@@ -153,13 +153,7 @@ return s
 end
 
 function read_coords()
-local y = memory.readbyte(0xdcb7)
-local x = memory.readbyte(0xdcb8)
-if not on_map() then
-tolk.output("Not on a map")
-return
-end
-
+local x, y = get_player_xy()
 tolk.output("x " .. x .. ", y " .. y)
 end
 
@@ -488,8 +482,7 @@ find_path_to(obj)
 end
 
 function read_item(item)
-local y = memory.readbyte(0xdcb7)
-local x = memory.readbyte(0xdcb8)
+local x, y = get_player_xy()
 local map_id = get_map_id()
 local s = get_name(mapid, item)
 if item.x then
@@ -597,8 +590,7 @@ speak_path(clean_path(path))
 end
 
 function find_path_to_xy(dest_x, dest_y, search)
-local player_y = memory.readbyte(0xdcb7)
-local player_x = memory.readbyte(0xdcb8)
+local player_x, player_y = get_player_xy()
 local collisions = get_map_collisions()
 local allnodes = {}
 local width = #collisions[0]
@@ -896,6 +888,10 @@ if d == 1 then return "up" end
 if d == 2 then return "left" end
 if d == 3 then return "right" end
 return "unknown"
+end
+
+function get_player_xy()
+return memory.readbyte(0xdcb8), memory.readbyte(0xdcb7)
 end
 
 commands = {
