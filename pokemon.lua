@@ -1,6 +1,7 @@
 require "a-star"
 serpent = require "serpent"
 local inputbox = require "Inputbox"
+require "ram"
 scriptpath = debug.getinfo(1, "S").source:sub(2):match("^.*\\")
 EAST = 1
 WEST = 2
@@ -15,7 +16,7 @@ dofile("fonts.lua")
 function is_printable_screen()
 local s = ""
 for i = 0, 15 do
-s = s .. string.char(memory.readbyte(0x8800+i))
+s = s .. string.char(memory.readbyte(RAM_SCREEN+i))
 end
 if fonts[s] then
 return true
@@ -44,7 +45,7 @@ end
 end
 
 function get_screen()
-local raw_text = memory.readbyterange(0xc4a0, 360)
+local raw_text = memory.readbyterange(RAM_TEXT, 360)
 local printable = is_printable_screen()
 local lines = {}
 local tile_lines = {}
@@ -121,7 +122,7 @@ return s:gsub("^%s*(.-)%s*$", "%1")
 end
 
 function parse_menu_header()
-local ptr = 0xcf81
+local ptr = RAM_MENU_HEADER
 local results = {}
 results.flags = memory.readbyte(ptr)
 results.start_y = memory.readbyte(ptr+1)
@@ -159,8 +160,8 @@ end
 
 function get_warps()
 local current_mapid = get_map_id()
-local eventstart = memory.readword(0xd1a6)
-local bank = memory.readbyte(0xd1a3)
+local eventstart = memory.readword(RAM_MAP_EVENT_HEADER_POINTER)
+local bank = memory.readbyte(RAM_MAP_SCRIPT_HEADER_BANK)
 eventstart = (bank*16384) + (eventstart - 16384)
 local warps = memory.gbromreadbyte(eventstart+2)
 local results = {}
@@ -183,8 +184,8 @@ return results
 end
 
 function get_signposts()
-local eventstart = memory.readword(0xd1a6)
-local bank = memory.readbyte(0xd1a3)
+local eventstart = memory.readword(RAM_MAP_EVENT_HEADER_POINTER)
+local bank = memory.readbyte(RAM_MAP_SCRIPT_HEADER_BANK)
 local mapid = get_map_id()
 eventstart = (bank*16384) + (eventstart - 16384)
 local warps = memory.gbromreadbyte(eventstart+2)
@@ -214,11 +215,11 @@ return (names[mapid] or {})[obj.id] or obj.name
 end
 
 function get_objects()
-local ptr = 0xd71e+16 -- skip the player
-local liveptr = 0xd81e -- live objects
+local ptr = RAM_MAP_OBJECTS+16 -- skip the player
+local liveptr = RAM_LIVE_OBJECTS -- live objects
 local results = {}
-local width = memory.readbyteunsigned(0xd19f)
-local height = memory.readbyteunsigned(0xd19e)
+local width = memory.readbyteunsigned(RAM_MAP_WIDTH)
+local height = memory.readbyteunsigned(RAM_MAP_HEIGHT)
 local mapid = get_map_id()
 for i = 1, 15 do
 local sprite = memory.readbyte(ptr+0x01)
@@ -231,7 +232,7 @@ local object_struct = memory.readbyte(ptr)
 -- and get its coords.
 -- if object is on screen and on the map
 if object_struct ~= 0xff and y ~= 255 then
-local l = 0xd4fe+((object_struct-1)*40)
+local l = RAM_OBJECT_STRUCTS+((object_struct-1)*40)
 x = memory.readbyte(l+0x12)
 y = memory.readbyte(l+0x13)
 facing = memory.readbyte(l+0xd)
@@ -261,7 +262,7 @@ return results
 end
 
 function get_connections()
-local connections = memory.readbyte(0xd1a8)
+local connections = memory.readbyte(RAM_MAP_CONNECTIONS)
 local function hasbit(x, p)
 return x % (p + p) >= p
 end
@@ -276,16 +277,16 @@ table.insert(results, {type="connection", direction=dir, name=name, id="connecti
 end
 
 if hasbit(connections, NORTH) then
-add_connection("north", memory.readbyte(0xd1a9)*256+memory.readbyte(0xd1aa))
+add_connection("north", memory.readbyte(RAM_MAP_NORTH_CONNECTION)*256+memory.readbyte(RAM_MAP_NORTH_CONNECTION+1))
 end
 if hasbit(connections, SOUTH) then
-add_connection("south", memory.readbyte(0xd1b5)*256+memory.readbyte(0xd1b6))
+add_connection("south", memory.readbyte(RAM_MAP_SOUTH_CONNECTION)*256+memory.readbyte(RAM_MAP_SOUTH_CONNECTION+1))
 end
 if hasbit(connections, EAST) then
-add_connection("east", memory.readbyte(0xd1cd)*256+memory.readbyte(0xd1ce))
+add_connection("east", memory.readbyte(RAM_MAP_EAST_CONNECTION)*256+memory.readbyte(RAM_MAP_EAST_CONNECTION+1))
 end
 if hasbit(connections, WEST) then
-add_connection("west", memory.readbyte(0xd1c1)*256+memory.readbyte(0xd1c2))
+add_connection("west", memory.readbyte(RAM_MAP_WEST_CONNECTION)*256+memory.readbyte(RAM_MAP_WEST_CONNECTION+1))
 end
 return results
 end
@@ -319,8 +320,8 @@ return results
 end
 
 function get_map_gn()
-local mapgroup = memory.readbyte(0xdcb5)
-local mapnumber = memory.readbyte(0xdcb6)
+local mapgroup = memory.readbyte(RAM_MAP_GROUP)
+local mapnumber = memory.readbyte(RAM_MAP_NUMBER)
 return mapgroup, mapnumber
 end
 
@@ -332,7 +333,7 @@ end
 -- Returns true or false indicating whether we're on a map or not.
 function on_map()
 local mapgroup, mapnumber = get_map_gn()
-if (mapnumber == 0 and mapgroup == 0) or memory.readbyte(0xd22d) ~= 0 then
+if (mapnumber == 0 and mapgroup == 0) or memory.readbyte(RAM_IN_BATTLE) ~= 0 then
 return false
 else
 return true
@@ -377,7 +378,7 @@ tolk.output(string.format("up %d down %d left %d right %d", up, down, left, righ
 end
 
 memory.registerexec(0x292c, function()
-local type = memory.readbyteunsigned(0xd4e4)
+local type = memory.readbyteunsigned(RAM_STANDING_TILE)
 if type == 0x18 then
 audio.play(scriptpath .. "sounds\\grass.wav", 0, 0, 30)
 else
@@ -496,8 +497,8 @@ end
 
 function get_map_blocks()
 -- map width, height in blocks
-local width = memory.readbyteunsigned(0xd19f)
-local height = memory.readbyteunsigned(0xd19e)
+local width = memory.readbyteunsigned(RAM_MAP_WIDTH)
+local height = memory.readbyteunsigned(RAM_MAP_HEIGHT)
 local row_width = width+6 -- including border
 ptr = 0xc800 -- start of overworld
 -- there is a border of 3 blocks on each edge of the map.
@@ -520,8 +521,8 @@ function add_collision(x, y, type)
 collisions[y] = collisions[y] or {}
 collisions[y][x] = type
 end
-local collision_bank = memory.readbyteunsigned(0xd1df)
-local collision_addr = memory.readword(0xd1e0)
+local collision_bank = memory.readbyteunsigned(RAM_COLLISION_BANK)
+local collision_addr = memory.readword(RAM_COLLISION_ADDR)
 collision_addr = (collision_bank * 16384) + (collision_addr - 16384)
 
 for y = 0, #blocks do
@@ -542,8 +543,8 @@ end
 
 function find_path_to(obj)
 local path
-local width = memory.readbyteunsigned(0xd19f)
-local height = memory.readbyteunsigned(0xd19e)
+local width = memory.readbyteunsigned(RAM_MAP_WIDTH)
+local height = memory.readbyteunsigned(RAM_MAP_HEIGHT)
 
 if obj.type == "connection" then
 if obj.direction == "north" then
@@ -761,7 +762,7 @@ end
 end
 return total
 end
-local enemy = read_bar(0xc4a0+(2*20)+4)
+local enemy = read_bar(RAM_TEXT+(2*20)+4)
 if enemy == nil then
 return nil
 else
@@ -798,8 +799,8 @@ return nt
 end
 
 function read_keyboard()
-local x = memory.readbyte(0xc330)
-local y = memory.readbyte(0xc331)
+local x = memory.readbyte(RAM_KEYBOARD_X)
+local y = memory.readbyte(RAM_KEYBOARD_Y)
 local lines = get_screen().lines
 local col = x*2+3
 local row = y*2+9
@@ -810,7 +811,7 @@ tolk.output(word)
 end
 
 function get_block(mapx, mapy)
-local width = memory.readbyte(0xd19f)
+local width = memory.readbyte(RAM_MAP_WIDTH)
 local row_width = width+6
 local ptr = 0xc801+row_width
 -- now we're on the second row, second column
@@ -820,8 +821,8 @@ local block = memory.readbyte(ptr+(skip_rows*row_width)+skip_cols)
 return block
 end
 function get_collision_data(block)
-local collision_bank = memory.readbyteunsigned(0xd1df)
-local collision_addr = memory.readword(0xd1e0)
+local collision_bank = memory.readbyteunsigned(RAM_COLLISION_BANK)
+local collision_addr = memory.readword(RAM_COLLISION_ADDR)
 collision_addr = (collision_bank * 16384) + (collision_addr - 16384)
 return memory.gbromreadbyterange(collision_addr+(block*4), 4)
 end
@@ -860,8 +861,8 @@ return nil
 end
 
 function handle_keyboard()
-col = memory.readbyte(0xc330)
-row = memory.readbyte(0xc331)
+col = memory.readbyte(RAM_KEYBOARD_X)
+row = memory.readbyte(RAM_KEYBOARD_Y)
 if row ~= old_kbd_row or col ~= old_kbd_col then
 read_keyboard()
 old_kbd_row = row
@@ -891,7 +892,7 @@ return "unknown"
 end
 
 function get_player_xy()
-return memory.readbyte(0xdcb8), memory.readbyte(0xdcb7)
+return memory.readbyte(RAM_PLAYER_X), memory.readbyte(RAM_PLAYER_Y)
 end
 
 commands = {
