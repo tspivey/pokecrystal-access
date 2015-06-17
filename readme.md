@@ -1,5 +1,4 @@
 ## Introduction
-## Introduction
 
 The Pokecrystal access project is a set of scripts which provide access to Pokémon Crystal, the famous GameBoy game, for people using a screen reader.
 These scripts are designed to work with the VBA-ReRecording GameBoy emulator.
