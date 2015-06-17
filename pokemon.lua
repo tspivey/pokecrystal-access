@@ -913,7 +913,6 @@ assert(package.loadlib("audio.dll", "luaopen_audio"))()
 tolk.output("ready")
 res, names = load_table("names.lua")
 if res == nil then
-tolk.output("Unable to load names file.")
 names = {}
 end
 res, default_names = load_table("default_names.lua")
