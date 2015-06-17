@@ -1,10 +1,11 @@
 ## Introduction
-The Pokecrystal access project is designed to provide a set of scripts,
-currently for the VBA-ReRecording gameboy emulator. These scripts allow the playing of
-Pokémon Crystal for people using a screen reader.
+## Introduction
 
+The Pokecrystal access project is a set of scripts which provide access to Pokémon Crystal, the famous GameBoy game, for people using a screen reader.
+These scripts are designed to work with the VBA-ReRecording GameBoy emulator.
+  
 ## Requirements and installation
-1. You'll need VBA ReRecording:
+1. Download the GameBoy emulator VBA Rerecording
 http://vba-rerecording.googlecode.com/files/vba-v24m-svn-r480.7z
 
 1. Get an English pokémon crystal rom.
@@ -13,7 +14,8 @@ http://vba-rerecording.googlecode.com/files/vba-v24m-svn-r480.7z
 
 1. Go to the Options menu, Head-Up Display, Show Speed, None (alt-o, h, s, enter)
 Without this, NVDA reads the title bar every time it changes.
-1. Optional, turn down the sound. Options, Audio, Volume (alt o, a, v)
+1. Optional but recommended: turn down the sound. In the Options menu, navigate to Audio, Volume (alt o, a, v)
+
 ##Starting the game
 Each time you run VBA, you'll need to load the rom.
 You can do this from the open dialog, or load a recent rom after you've opened it once.
