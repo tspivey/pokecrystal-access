@@ -30,7 +30,7 @@ Make sure num lock is off while playing the game, or the keys won't work.
 * shift n - rename current map
 * n - rename current item
 * t - read text on screen, if any
-* p - pathfind
+* p - pathfind. This tries to find a path between you and the object selected, or as close as it can get.
 * c - read coordinates
 * h - read enemy health if in a battle
 
