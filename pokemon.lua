@@ -1,17 +1,23 @@
 require "a-star"
 serpent = require "serpent"
 local inputbox = require "Inputbox"
-require "ram"
 scriptpath = debug.getinfo(1, "S").source:sub(2):match("^.*\\")
 EAST = 1
 WEST = 2
 SOUTH = 4
 NORTH = 8
 TEXTBOX_PATTERN = "\x79\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7b"
--- characters table
-dofile("chars.lua")
-dofile("sprites.lua")
-dofile("fonts.lua")
+language_names = {}
+function load_language(code)
+local t = {"chars.lua", "fonts.lua", "ram.lua", "sprites.lua"}
+for i, v in ipairs(t) do
+local f = loadfile(scriptpath .. "\\lang\\" .. code .. "\\" .. v)
+if f ~= nil then
+f()
+end
+end
+end
+load_language("en")
 
 function is_printable_screen()
 local s = ""
@@ -294,6 +300,8 @@ end
 function get_map_name(mapid)
 if names[mapid] ~= nil and names[mapid]["map"] ~= nil then
 return names[mapid]["map"]
+elseif language_names[mapid] ~= nil and language_names[mapid].map ~= nil then
+return language_names[mapid].map
 elseif default_names[mapid] ~= nil and default_names[mapid].map ~= nil then
 return default_names[mapid].map
 else
@@ -376,22 +384,6 @@ local left = memory.readbyte(0xc2fc)
 local right = memory.readbyte(0xc2fd)
 tolk.output(string.format("up %d down %d left %d right %d", up, down, left, right))
 end
-
-memory.registerexec(0x292c, function()
-local type = memory.readbyteunsigned(RAM_STANDING_TILE)
-if type == 0x18 then
-audio.play(scriptpath .. "sounds\\grass.wav", 0, 0, 30)
-else
-audio.play(scriptpath .. "sounds\\step.wav", 0, 0, 30)
-end
-end)
-
-in_options = false
-memory.registerexec(0x2d63, function()
-if memory.getregister("a") == 57 and memory.getregister("h") == 0x41 and memory.getregister("l") == 0xd0 then
-in_options = true
-end
-end)
 
 function compare(t1, t2)
 if #t1 ~= #t2 then
@@ -843,7 +835,7 @@ return data[i]
 end
 
 function keyboard_showing(screen)
-if screen.lines[17]:match("DEL   END") ~= nil then
+if screen.lines[17]:match(KEYBOARD_STRING) ~= nil then
 return true
 end
 return false
@@ -895,6 +887,14 @@ function get_player_xy()
 return memory.readbyte(RAM_PLAYER_X), memory.readbyte(RAM_PLAYER_Y)
 end
 
+function get_language_code()
+local code = ""
+for i = 0, 3 do
+code = code .. string.char(memory.gbromreadbyte(0x13f+i))
+end
+return code
+end
+
 commands = {
 [{"C"}] = {read_coords, true};
 [{"J"}] = {read_previous_item, true};
@@ -915,11 +915,42 @@ res, names = load_table("names.lua")
 if res == nil then
 names = {}
 end
-res, default_names = load_table("default_names.lua")
+res, default_names = load_table(scriptpath .. "\\lang\\en\\" .. "default_names.lua")
 if res == nil then
 tolk.output("Unable to load default names file.")
 default_names = {}
 end
+-- get current language
+local code = get_language_code()
+-- including everything but english in here, since english is the default
+local codemap = {
+["BXTJ"] = "ja",
+["BYTD"] = "de",
+["BYTS"] = "es",
+["BYTI"] = "it",
+["BYTF"] = "fr",
+}
+if codemap[code] then
+load_language(codemap[code])
+language = codemap[code]
+res, language_names = load_table(scriptpath .. "\\lang\\" .. codemap[code] .. "\\default_names.lua")
+if res == nil then language_names = {} end
+end
+memory.registerexec(RAM_FOOTSTEP_FUNCTION, function()
+local type = memory.readbyteunsigned(RAM_STANDING_TILE)
+if type == 0x18 then
+audio.play(scriptpath .. "sounds\\grass.wav", 0, 0, 30)
+else
+audio.play(scriptpath .. "sounds\\step.wav", 0, 0, 30)
+end
+end)
+
+in_options = false
+memory.registerexec(RAM_BANK_SWITCH, function()
+if memory.getregister("a") == 57 and memory.getregister("h") == 0x41 and memory.getregister("l") == 0xd0 then
+in_options = true
+end
+end)
 
 counter = 0
 oldtext = "" -- last text seen
