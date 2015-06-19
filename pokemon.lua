@@ -42,8 +42,11 @@ end
 return res, t
 end
 
-function translate(char)
+function translate(char, above)
 if chars[char] then
+if above then
+return chars[above*256+char] or chars[char]
+end
 return chars[char]
 else
 return " "
@@ -58,7 +61,9 @@ local tile_lines = {}
 local line = ""
 local tile_line = ""
 local menu_position = nil
+local line_number = 0
 for i = 1, 360, 20 do
+line_number = line_number + 1
 for j = 0, 19 do
 local char = raw_text[i+j]
 tile_line = tile_line .. string.char(char)
@@ -69,8 +74,15 @@ if i+j == 359 and char == 0xee then
 char = 0x7f
 end
 if printable then
-char = translate(char)
+if language == "ja" then
+above = (tile_lines[line_number-1] or ""):sub(j+1)
+if above ~= "" then above = string.byte(above) else above=nil end
+if above == 0x7f then above = nil end
+char = translate(char, above)
 else
+char = translate(char)
+end
+else -- not printable
 char = " "
 end
 line = line .. char
@@ -237,8 +249,13 @@ local object_struct = memory.readbyte(ptr)
 -- map object struct is not 0xff, use that to look up the object struct,
 -- and get its coords.
 -- if object is on screen and on the map
+local l
 if object_struct ~= 0xff and y ~= 255 then
-local l = RAM_OBJECT_STRUCTS+((object_struct-1)*40)
+if language == "ja" then
+l = RAM_OBJECT_STRUCTS+((object_struct)*40)
+else
+l = RAM_OBJECT_STRUCTS+((object_struct-1)*40)
+end
 x = memory.readbyte(l+0x12)
 y = memory.readbyte(l+0x13)
 facing = memory.readbyte(l+0xd)
