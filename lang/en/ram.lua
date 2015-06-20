@@ -28,3 +28,19 @@ RAM_KEYBOARD_Y = 0xc331
 RAM_FOOTSTEP_FUNCTION = 0x292c
 RAM_BANK_SWITCH = 0x2d63
 KEYBOARD_STRING = "DEL   END"
+KEYBOARD_UPPER = {
+{"a", "b", "c", "d", "e", "f", "g", "h", "i"},
+{"j", "k", "l", "m", "n", "o", "p", "q", "r"},
+{"s", "t", "u", "v", "w", "x", "y", "z"},
+{"-", "?", "!", "/", ".", ","},
+{"lower", "", "", "del", "", "", "end", "", "end"}
+}
+
+KEYBOARD_LOWER = {
+{"a", "b", "c", "d", "e", "f", "g", "h", "i"},
+{"j", "k", "l", "m", "n", "o", "p", "q", "r"},
+{"s", "t", "u", "v", "w", "x", "y", "z", "space"},
+{"×", "(", ")", ":", ";", "[", "]", "pk", "mn"},
+{"upper", "", "", "del", "", "", "end", "", "end"}
+}
+KEYBOARD_UPPER_STRING = "UPPER"

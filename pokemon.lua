@@ -810,12 +810,11 @@ end
 function read_keyboard()
 local x = memory.readbyte(RAM_KEYBOARD_X)
 local y = memory.readbyte(RAM_KEYBOARD_Y)
-local lines = get_screen().lines
-local col = x*2+3
-local row = y*2+9
--- sometimes the word/character is right aligned, like LOWER, DEL and END
-local word = lines[row]:sub(col)
-word = word:match("%s*(%S*)")
+local t = KEYBOARD_UPPER
+if screen.lines[17]:match(KEYBOARD_UPPER_STRING) ~= nil then
+t = KEYBOARD_LOWER
+end
+local word = t[y+1][x+1] or "unknown"
 tolk.output(word)
 end
 
