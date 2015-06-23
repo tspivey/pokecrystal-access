@@ -44,3 +44,4 @@ KEYBOARD_LOWER = {
 {"upper", "", "", "del", "", "", "end", "", "end"}
 }
 KEYBOARD_UPPER_STRING = "UPPER"
+MSG_HOW_MANY = "How many?"

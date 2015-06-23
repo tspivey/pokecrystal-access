@@ -122,7 +122,7 @@ end
 
 function should_read_textbox()
 if (screen.tile_lines[3]:match("\x60\x61") or screen.tile_lines[10]:match("\x60\x61")) then return true end
-if trim(screen.lines[15]) == "How many?" then return true end
+if trim(screen.lines[15]) == MSG_HOW_MANY then return true end
 return false
 end
 
