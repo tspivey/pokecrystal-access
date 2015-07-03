@@ -1,3 +1,5 @@
+--This script handles automatic announcement of tile changes around the user.
+
 announce_navigation = true
 directions = {"up", "down", "left", "right"}
 previous_tiles = {-1, -1, -1, -1}
@@ -6,6 +8,7 @@ tiles = {-1, -1, -1, -1}
 
 
 function read_tiles()
+--Read surrounding tiles.
 local down = memory.readbyte(0xc2fa)
 local up = memory.readbyte(0xc2fb)
 local left = memory.readbyte(0xc2fc)
@@ -15,6 +18,7 @@ tiles = {up, down, left, right}
 end
 
 function announce_tiles()
+--Announces tile changes around the user if announce_navigation is set to true and there are in fact changes.
 read_tiles()
 announce = ""
 if announce_navigation==false then
@@ -44,12 +48,9 @@ end
 
 
 function on_move()
+--This function is called by the footstep function used in the main pokemon.lua file.
 read_tiles()
 if announce_navigation then
 announce_tiles()
 end
-end
-
-function look_left()
-print(#objects[3])
 end
