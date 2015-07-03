@@ -1,5 +1,4 @@
 ## Introduction
-
 The Pokecrystal access project is a set of scripts which provide access to Pokémon Crystal, the famous GameBoy game, for people using a screen reader.
 These scripts are designed to work with the VBA-ReRecording GameBoy emulator.
   
@@ -33,4 +32,6 @@ Make sure num lock is off while playing the game, or the keys won't work.
 * p - pathfind. This tries to find a path between you and the object selected, or as close as it can get.
 * c - read coordinates
 * h - read enemy health if in a battle
-
+* shift u - Orient map viewer focus to the position of the player.
+* shift i, k, j and l - Move the map viewer focus up, down, left and right respectively. The tile that is being focused will be announced, along with any objects on that tile. As of onw it does not announce connections.
+* shift p - Pathfind to the currently focused tile.
