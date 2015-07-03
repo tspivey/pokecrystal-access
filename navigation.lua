@@ -16,7 +16,6 @@ end
 
 function announce_tiles()
 read_tiles()
-near_objects()
 announce = ""
 if announce_navigation==false then
 return
