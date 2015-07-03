@@ -1,5 +1,7 @@
 require "a-star"
 serpent = require "serpent"
+dofile("navigation.lua")
+dofile("view.lua")
 local inputbox = require "Inputbox"
 scriptpath = debug.getinfo(1, "S").source:sub(2):match("^.*\\")
 EAST = 1
@@ -276,6 +278,12 @@ end
 local collisions = get_map_collisions()
 for y = 0, #collisions do
 for x = 0, #collisions[0] do
+if collisions[y][x] == 96 then
+table.insert(results, {name="Hole", x=x, y=y, id="hole", type="object"})
+end
+if collisions[y][x] == 18 then
+table.insert(results, {name="Tree", x=x, y=y, id="tree", type="object"})
+end
 if collisions[y][x] == 147 then
 table.insert(results, {name="PC", x=x, y=y, id="pc", type="object"})
 end
@@ -394,13 +402,6 @@ end
 return s
 end
 
-function read_tiles()
-local down = memory.readbyte(0xc2fa)
-local up = memory.readbyte(0xc2fb)
-local left = memory.readbyte(0xc2fc)
-local right = memory.readbyte(0xc2fd)
-tolk.output(string.format("up %d down %d left %d right %d", up, down, left, right))
-end
 
 function compare(t1, t2)
 if #t1 ~= #t2 then
@@ -693,6 +694,7 @@ inpassible_tiles = {
 [18] = true;
 [21] = true;
 [41] = true;
+[144] = true;
 [145]=true;
 [149] = true;
 [178] = true;
@@ -922,6 +924,13 @@ commands = {
 [{"N", "shift"}] = {rename_map, true};
 [{"M", "shift"}] = {read_mapname, true};
 [{"H"}] = {read_enemy_health, false},
+[{"I"}] = {toggle_navigation, true},
+[{"U", "shift"}] = {orient_to_player, true},
+[{"J", "shift"}] = {map_left, true},
+[{"I", "shift"}] = {map_up, true},
+[{"L", "shift"}] = {map_right, true},
+[{"K", "shift"}] = {map_down, true},
+[{"P", "shift"}] = {pathfind_map_view, true},
 }
 
 tolk = require "tolk"
@@ -953,9 +962,12 @@ res, language_names = load_table(scriptpath .. "\\lang\\" .. codemap[code] .. "\
 if res == nil then language_names = {} end
 end
 memory.registerexec(RAM_FOOTSTEP_FUNCTION, function()
+announce_tiles()
 local type = memory.readbyteunsigned(RAM_STANDING_TILE)
 if type == 0x18 then
 audio.play(scriptpath .. "sounds\\grass.wav", 0, 0, 30)
+elseif type == 0x29 then
+audio.play(scriptpath .. "sounds\\ocean.wav", 0, 0, 30)
 else
 audio.play(scriptpath .. "sounds\\step.wav", 0, 0, 30)
 end
