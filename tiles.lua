@@ -15,6 +15,7 @@ tile_names = {
 [0] = "open";
 [7] = "wall";
 [18] = "tree";
+[21] = "small tree";
 [24] = "grass";
 [36] = "whirlpool";
 [39] = "obstacle";
@@ -32,6 +33,7 @@ tile_names = {
 
 object_tiles = {
 [18] = true;
+[21] = true;
 [36 ] = true;
 [96] = true;
 [147] = true;
