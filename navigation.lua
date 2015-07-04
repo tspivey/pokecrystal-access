@@ -1,9 +1,10 @@
 --This script handles automatic announcement of tile changes around the user.
 
+
 announce_navigation = true
 directions = {"up", "down", "left", "right"}
 previous_tiles = {-1, -1, -1, -1}
-tiles = {-1, -1, -1, -1}
+current_tiles = {-1, -1, -1, -1}
 
 
 
@@ -13,8 +14,8 @@ local down = memory.readbyte(0xc2fa)
 local up = memory.readbyte(0xc2fb)
 local left = memory.readbyte(0xc2fc)
 local right = memory.readbyte(0xc2fd)
-previous_tiles = {tiles[1], tiles[2], tiles[3], tiles[4]}
-tiles = {up, down, left, right}
+previous_tiles = {current_tiles[1], current_tiles[2], current_tiles[3], current_tiles[4]}
+current_tiles = {up, down, left, right}
 end
 
 function announce_tiles()
@@ -25,10 +26,10 @@ if announce_navigation==false then
 return
 end
 for d = 1,#directions do
-if announce_navigation and tiles[d]~=previous_tiles[d] then
+if announce_navigation and current_tiles[d]~=previous_tiles[d] then
 announce = announce..directions[d].." "
-if announce_navigation and tiles[d]~=previous_tiles[d] then
-announce = announce..tiles[d].." "
+if announce_navigation and current_tiles[d]~=previous_tiles[d] then
+announce = announce..tile_name(current_tiles[d]).." "
 end
 end
 end

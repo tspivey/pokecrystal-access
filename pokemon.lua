@@ -1,5 +1,6 @@
 require "a-star"
 serpent = require "serpent"
+dofile("tiles.lua")
 dofile("navigation.lua")
 dofile("view.lua")
 local inputbox = require "Inputbox"
@@ -278,18 +279,7 @@ end
 local collisions = get_map_collisions()
 for y = 0, #collisions do
 for x = 0, #collisions[0] do
-if collisions[y][x] == 36 then
-table.insert(results, {name="Whirlpool", x=x, y=y, id="whirlpool", type="object"})
-end
-if collisions[y][x] == 96 then
-table.insert(results, {name="Hole", x=x, y=y, id="hole", type="object"})
-end
-if collisions[y][x] == 18 then
-table.insert(results, {name="Tree", x=x, y=y, id="tree", type="object"})
-end
-if collisions[y][x] == 147 then
-table.insert(results, {name="PC", x=x, y=y, id="pc", type="object"})
-end
+table.insert(results, object(collisions[y][x], x, y))
 end
 end
 return results
@@ -692,16 +682,6 @@ tolk.output(v[2] .. " " .. v[1])
 end
 end -- function
 
-inpassible_tiles = {
-[7]=true;
-[18] = true;
-[21] = true;
-[41] = true;
-[144] = true;
-[145]=true;
-[149] = true;
-[178] = true;
-}
 
 function rename_current()
 local info = get_map_info()
