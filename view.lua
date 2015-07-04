@@ -1,3 +1,4 @@
+
 mapx= -1
 mapy = -1
 map = {}
@@ -23,7 +24,7 @@ return
 end
 end
 end
-tolk.output(""..map[mapy][mapx].." x: "..mapx.." y: "..mapy)
+tolk.output(""..tile_name(map[mapy][mapx]).." x: "..mapx.." y: "..mapy)
 end
 
 function orient_to_player()
