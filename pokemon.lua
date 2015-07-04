@@ -278,6 +278,9 @@ end
 local collisions = get_map_collisions()
 for y = 0, #collisions do
 for x = 0, #collisions[0] do
+if collisions[y][x] == 36 then
+table.insert(results, {name="Whirlpool", x=x, y=y, id="whirlpool", type="object"})
+end
 if collisions[y][x] == 96 then
 table.insert(results, {name="Hole", x=x, y=y, id="hole", type="object"})
 end
