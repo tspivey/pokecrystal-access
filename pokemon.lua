@@ -707,10 +707,17 @@ file:write(serpent.block(names, {comment=false}))
 io.close(file)
 tolk.output("names saved")
 end
+
 function rename_map()
 local id = get_map_id()
 local obj_id = "map"
+if names[id] then
+print("there were names.")
 name = inputbox.inputbox("Rename map", "Enter a new name for " .. names[id][obj_id], names[id][obj_id])
+else
+print("No names.")
+name = inputbox.inputbox("Rename map", "Enter a new name for " .. get_map_name(id), get_map_name(id))
+end
 if name == nil then
 return
 end
