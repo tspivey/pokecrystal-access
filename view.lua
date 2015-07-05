@@ -12,7 +12,8 @@ info.height = (memory.readbyteunsigned(RAM_MAP_HEIGHT)*2)-1
 end
 
 function read_location()
-if mapx<0 or mapy<0 then
+read_map()
+if mapx<0 or mapy<0 or mapx>info.width or mapy>info.height then
 tolk.output("Current focus not on map. To orient the focus to the position of the player, press shift+u.")
 return
 end
