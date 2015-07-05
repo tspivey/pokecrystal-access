@@ -19,7 +19,6 @@ tile_names = {
 [24] = "grass";
 [36] = "whirlpool";
 [39] = "obstacle";
-[41] = "water";
 [51] = "waterfall";
 [113] = "door";
 [145] = "PokéMon Friend PokéMon Magazine";
