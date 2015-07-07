@@ -11,46 +11,48 @@ inpassible_tiles = {
 [178] = true;
 }
 
-tile_names = {
-[0] = "open";
-[7] = "wall";
-[18] = "tree";
-[21] = "small tree";
-[24] = "grass";
-[36] = "whirlpool";
-[39] = "obstacle";
-[51] = "waterfall";
-[113] = "door";
-[145] = "PokéMon Friend PokéMon Magazine";
-[147] = "pc";
-[148] = "radio";
-[149] = "town map";
-[150] = "Pokémon Merchandising";
-[151] = "television";
-[157] = "mirror image";
-[159] = "incense";
+tiles = {
+[0] = {name="open", type="terrain", object=false};
+[7] = {name="wall", type="terrain", object=false};
+[18] = {name="tree", type="terrain", object=true};
+[21] = {name="small tree", type="terrain", object=true};
+[24] = {name="grass", type="terrain", object=false};
+[36] = {name="whirlpool", type="terrain", object=true};
+[39] = {name="obstacle", type="terrain", object=true};
+[51] = {name="waterfall", type="terrain", object=false};
+[113] = {name="door", type="terrain", object=false};
+[145] = {"PokéMon Friend PokéMon Magazine", type="terrain", object=false};
+[147] = {name="pc", type="object", object=true};
+[148] = {name="radio", type="terrain", object=false};
+[149] = {name="town map", type="terrain", object=false};
+[150] = {name="Pokémon Merchandising", type="terrain", object=false};
+[151] = {name="television", type="terrain", object=false};
+[157] = {name="mirror image", type="terrain", object=false};
+[159] = {name="incense", type="terrain", object=false};
 }
 
-object_tiles = {
-[18] = true;
-[21] = true;
-[36 ] = true;
-[96] = true;
-[147] = true;
-}
 
 
 function tile_name(id)
-if tile_names[id] then
-return tile_names[id]
+if tiles[id] then
+return tiles[id].name
 end
 return id
 end
 
+function tile_type(id)
+if tiles[id] then
+return tiles[id].type
+end
+return "object"
+end
+
 --Returns an object table for a specified tile id, if that id matches a given tile object.
 function object(tile_id, x, y)
-if object_tiles[tile_id] then
-return {name = tile_name(tile_id), x=x, y=y, id = tile_name(tile_id), type="object"}
+if tiles[tile_id] then
+if tiles[tile_id].object then
+return {name = tile_name(tile_id), x=x, y=y, id = tile_name(tile_id), type=tile_type(tile_id)}
+end
 end
 return nil
 end
