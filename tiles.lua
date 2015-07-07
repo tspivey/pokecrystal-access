@@ -21,7 +21,8 @@ tiles = {
 [39] = {name="obstacle", type="terrain", object=true};
 [51] = {name="waterfall", type="terrain", object=false};
 [113] = {name="door", type="terrain", object=false};
-[145] = {"PokéMon Friend PokéMon Magazine", type="terrain", object=false};
+[144] = {name="counter", type="terrain", object=false};
+[145] = {name="PokéMon Friend PokéMon Magazine", type="terrain", object=false};
 [147] = {name="pc", type="object", object=true};
 [148] = {name="radio", type="terrain", object=false};
 [149] = {name="town map", type="terrain", object=false};
@@ -44,7 +45,6 @@ function tile_type(id)
 if tiles[id] then
 return tiles[id].type
 end
-return "object"
 end
 
 --Returns an object table for a specified tile id, if that id matches a given tile object.
