@@ -182,6 +182,54 @@ return results
 end
 
 
+function get_map_blocks()
+-- map width, height in blocks
+local width = memory.readbyteunsigned(RAM_MAP_WIDTH)
+local height = memory.readbyteunsigned(RAM_MAP_HEIGHT)
+local row_width = width+6 -- including border
+ptr = 0xc800 -- start of overworld
+-- there is a border of 3 blocks on each edge of the map.
+local blocks = {}
+for y = 0, height - 1 do
+for x = 0, width - 1 do
+local block = memory.readbyteunsigned(ptr+(width+6)*3+(y*row_width)+(x+3))
+blocks[y] = blocks[y] or {}
+blocks[y][x] = block
+end
+end
+return blocks
+end
+
+
+function get_map_collisions()
+local blocks = get_map_blocks()
+local width = #blocks[0]
+local collisions = {}
+function add_collision(x, y, type)
+collisions[y] = collisions[y] or {}
+collisions[y][x] = type
+end
+local collision_bank = memory.readbyteunsigned(RAM_COLLISION_BANK)
+local collision_addr = memory.readword(RAM_COLLISION_ADDR)
+collision_addr = (collision_bank * 16384) + (collision_addr - 16384)
+
+for y = 0, #blocks do
+for x = 0, width do
+-- Each block is a 2x2 walkable tile. The collision data is
+-- (top left, top right, bottom left, bottom right).
+-- We have block data for the first half of the xy pair here.
+local block_index = blocks[y][x]
+local ptr = collision_addr + (block_index * 4)
+add_collision(x*2, y*2, memory.gbromreadbyte(ptr))
+add_collision(x*2+1, y*2, memory.gbromreadbyte(ptr+1))
+add_collision(x*2, y*2+1, memory.gbromreadbyte(ptr+2))
+add_collision(x*2+1, y*2+1, memory.gbromreadbyte(ptr+3))
+end -- x
+end -- y
+return collisions
+end
+
+
 -- Returns true or false indicating whether we're on a map or not.
 function on_map()
 local mapgroup, mapnumber = get_map_gn()
@@ -189,6 +237,64 @@ if (mapnumber == 0 and mapgroup == 0) or memory.readbyte(RAM_IN_BATTLE) ~= 0 the
 return false
 else
 return true
+end
+end
+
+function get_block(mapx, mapy)
+local width = memory.readbyte(RAM_MAP_WIDTH)
+local row_width = width+6
+local ptr = 0xc801+row_width
+-- now we're on the second row, second column
+local skip_rows = math.floor(mapy/2)
+local skip_cols = math.floor(mapx/2)
+local block = memory.readbyte(ptr+(skip_rows*row_width)+skip_cols)
+return block
+end
+
+function get_collision_data(block)
+local collision_bank = memory.readbyteunsigned(RAM_COLLISION_BANK)
+local collision_addr = memory.readword(RAM_COLLISION_ADDR)
+collision_addr = (collision_bank * 16384) + (collision_addr - 16384)
+return memory.gbromreadbyterange(collision_addr+(block*4), 4)
+end
+
+
+function get_collision_data_xy(mapx, mapy)
+local block = get_block(mapx, mapy)
+if block == 0 then return 255 end
+local data = get_collision_data(block)
+if mapx % 2 == 0 then
+i = 1
+else
+i=2
+end
+if mapy%2 ~= 0 then
+i = i + 2
+end
+return data[i]
+end
+
+
+function get_enemy_health()
+local function read_bar(addr)
+local count
+-- no bar here
+if memory.readbyte(addr+BAR_LENGTH) ~= 0x6b then
+return nil
+end
+local total = 0
+for i = 0, BAR_LENGTH - 1 do
+if memory.readbyte(addr+i) == 0x6a then
+total = total +1
+end
+end
+return total
+end
+local enemy = read_bar(RAM_TEXT+(2*20)+4)
+if enemy == nil then
+return nil
+else
+return string.format("%d of %d", enemy, BAR_LENGTH)
 end
 end
 
