@@ -67,3 +67,8 @@ end
 end
 return nil
 end
+
+function tile_sound(id)
+print(tile_name(id))
+audio.play(scriptpath .. "sounds\\"..tile_name(id)..".wav", 0, 0, 30)
+end

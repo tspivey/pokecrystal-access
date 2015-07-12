@@ -548,13 +548,7 @@ end
 memory.registerexec(RAM_FOOTSTEP_FUNCTION, function()
 announce_tiles()
 local type = memory.readbyteunsigned(RAM_STANDING_TILE)
-	if type == 0x14 or type == 0x18 then
-audio.play(scriptpath .. "sounds\\grass.wav", 0, 0, 30)
-elseif type == 0x29 then
-audio.play(scriptpath .. "sounds\\ocean.wav", 0, 0, 30)
-else
-audio.play(scriptpath .. "sounds\\step.wav", 0, 0, 30)
-end
+tile_sound(type)
 end)
 
 in_options = false
