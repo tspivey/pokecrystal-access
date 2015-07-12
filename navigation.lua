@@ -2,6 +2,7 @@
 
 
 announce_navigation = true
+modified_pathfinding = false
 directions = {"up", "down", "left", "right"}
 previous_tiles = {-1, -1, -1, -1}
 current_tiles = {-1, -1, -1, -1}
@@ -53,5 +54,22 @@ function on_move()
 read_tiles()
 if announce_navigation then
 announce_tiles()
+end
+end
+
+function toggle_modified_pathfinding()
+modified_pathfinding = not modified_pathfinding
+if modified_pathfinding then
+tolk.output("Modified pathfinding enabled.")
+tiles[18].mod_passable = true
+tiles[36].mod_passable = true
+tiles[41].mod_passable = true
+tiles[51].mod_passable = true
+else
+tolk.output("Modified pathfinding disabled.")
+tiles[18].mod_passable = false
+tiles[36].mod_passable = false
+tiles[41].mod_passable = false
+tiles[51].mod_passable = false
 end
 end

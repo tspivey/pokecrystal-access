@@ -514,6 +514,7 @@ commands = {
 [{"L", "shift"}] = {map_right, true},
 [{"K", "shift"}] = {map_down, true},
 [{"P", "shift"}] = {pathfind_map_view, true},
+[{"O"}] = {toggle_modified_pathfinding, true},
 }
 
 tolk = require "tolk"
