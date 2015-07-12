@@ -8,6 +8,10 @@ SOUTH = 4
 NORTH = 8
 TEXTBOX_PATTERN = "\x79\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7a\x7b"
 language_names = {}
+camera_x = -1
+camera_y = -1
+pathfind_switch = false
+
 function load_language(code)
 local t = {"chars.lua", "fonts.lua", "ram.lua", "sprites.lua"}
 for i, v in ipairs(t) do
@@ -266,7 +270,7 @@ name = sprites[sprite]
 end
 if y ~= 255 and y-4 <= height*2 and x-4 <= width*2 then
 if memory.readbyte(liveptr+i) == 0 then
-local obj = {x=x-4, y=y-4, name=name, type="object", id="object_" .. i, facing=facing}
+local obj = {x=x-4, y=y-4, name=name, type="object", id="object_" .. i, facing=facing, sprite_id = sprite}
 obj.name = get_name(mapid, obj)
 table.insert(results, obj)
 end
@@ -394,12 +398,167 @@ end
 return s
 end
 
+-- Read current and around tiles
 function read_tiles()
-local down = memory.readbyte(0xc2fa)
-local up = memory.readbyte(0xc2fb)
-local left = memory.readbyte(0xc2fc)
-local right = memory.readbyte(0xc2fd)
-tolk.output(string.format("up %d down %d left %d right %d", up, down, left, right))
+local player_x, player_y = get_player_xy()
+local collisions = get_map_collisions()
+local s = string.format("Now %d", collisions[player_y][player_x])
+
+-- Check up tile
+if player_y > 1 then
+	s = s .. string.format(", Up %d", collisions[player_y - 1][player_x])
+else -- up is none
+	s = s .. ", Up none"
+end -- Check up tile
+
+-- Check down tile
+if player_y < #collisions then
+	s = s .. string.format(", Down %d", collisions[player_y + 1][player_x])
+else -- Down is none
+	s = s .. ", Down none"
+end -- Check down tile
+
+-- Check left tile
+if player_x > 1 then
+	s = s .. string.format(", Left %d", collisions[player_y][player_x - 1])
+else -- left is none
+	s = s .. ", Left none"
+end -- Check left tile
+
+-- Check right tile
+if player_x < #collisions[0] then
+	s = s .. string.format(", Right %d", collisions[player_y][player_x + 1])
+else -- right is none
+	s = s .. ", Right none"
+end -- Check right tile
+
+tolk.output(s)
+end
+
+-- Playback tile sounds
+function play_tile_sound(type, pan, vol, play_stair)
+	if type == 0x14 or type == 0x18 then
+		audio.play(scriptpath .. "sounds\\s_grass.wav", 0, pan, vol)
+	elseif type == 0x12 then
+		audio.play(scriptpath .. "sounds\\s_cut.wav", 0, pan, vol)
+	elseif type == 0x23 then
+		audio.play(scriptpath .. "sounds\\s_ice.wav", 0, pan, vol)
+	elseif type == 0x24 then
+		audio.play(scriptpath .. "sounds\\s_whirl.wav", 0, pan, vol)
+	elseif type == 0x29 then
+		audio.play(scriptpath .. "sounds\\s_water.wav", 0, pan, vol)
+	elseif type == 0x33 then
+		audio.play(scriptpath .. "sounds\\s_waterfall.wav", 0, pan, vol)
+	elseif type > 0xA0 then
+		audio.play(scriptpath .. "sounds\\s_mad.wav", 0, pan, vol)
+	elseif play_stair and (type == 0x71 or type == 0x72 or type == 0x76 or type == 0x7B) then
+		audio.play(scriptpath .. "sounds\\s_stair.wav", 0, pan, vol)
+	elseif play_stair and type == 0x60 then
+		audio.play(scriptpath .. "sounds\\s_hole.wav", 0, pan, vol)
+	else
+		audio.play(scriptpath .. "sounds\\s_default.wav", 0, pan, vol)
+	end -- switch tile type
+end
+
+-- reset camera focus when camera_xy equal -1
+function reset_camera_focus(player_x, player_y)
+	if camera_x == -1 then
+		camera_x = player_x
+	end
+	if camera_y == -1 then
+		camera_y = player_y
+	end
+end
+
+-- Moving camera focus
+function camera_move(y, x, ignore_wall)
+	local player_x, player_y = get_player_xy()
+	reset_camera_focus(player_x, player_y)
+	camera_y = camera_y + y
+	camera_x = camera_x + x
+
+	local collisions = get_map_collisions()
+	local pan = (camera_x - player_x) * 5
+	local vol = 40 - math.abs(player_y - camera_y)
+
+	-- clipping pan and volume
+	if pan > 100 then
+		vol = vol - ((pan / 5) - 20)
+		pan = 100
+	end
+	if pan < -100 then
+		vol = vol - math.abs((pan / 5) - 20)
+		pan = -100
+	end
+	if vol < 5 then
+		vol = 5
+	end
+
+	if camera_y >= 0 and camera_x >= 0 and camera_y <= #collisions and camera_x <= #collisions[1] then
+		local objects = get_objects()
+		for i, obj in pairs(objects) do
+			if obj.x == camera_x and obj.y == camera_y then
+				if obj.sprite_id == 90 then
+					audio.play(scriptpath .. "sounds\\s_boulder.wav", 0, pan, vol)
+				elseif obj.sprite_id == 89 then
+					audio.play(scriptpath .. "sounds\\s_rock.wav", 0, pan, vol)
+				end -- sprite_id
+			end -- obj.xy
+		end -- for
+
+		if inpassible_tiles[collisions[camera_y][camera_x]] then
+			if ignore_wall then
+				camera_x = camera_x - x
+				camera_y = camera_y - y
+			end
+			audio.play(scriptpath .. "sounds\\s_wall.wav", 0, pan, vol)
+		else
+			audio.play(scriptpath .. "sounds\\pass.wav", 0, pan, vol)
+			play_tile_sound(collisions[camera_y][camera_x], pan, vol, true)
+		end
+	else
+		camera_x = camera_x - x
+		camera_y = camera_y - y
+		audio.play(scriptpath .. "sounds\\s_wall.wav", 0, pan, vol)
+	end
+end
+
+function set_camera_default()
+	camera_x = -1
+	camera_y = -1
+	camera_move(0, 0, true)
+end
+
+function camera_move_left()
+	camera_move(0, -1, true)
+end
+
+function camera_move_right()
+	camera_move(0, 1, true)
+end
+
+function camera_move_up()
+	camera_move(-1, 0, true)
+end
+
+function camera_move_down()
+	camera_move(1, 0, true)
+end
+
+function camera_move_left_ignore_wall()
+	camera_move(0, -1, false)
+end
+
+function camera_move_right_ignore_wall()
+	camera_move(0, 1, false)
+end
+
+function camera_move_up_ignore_wall()
+	camera_move(-1, 0, false)
+end
+
+function camera_move_down_ignore_wall()
+	camera_move(1, 0, false)
 end
 
 function compare(t1, t2)
@@ -461,6 +620,8 @@ function reset_current_item_if_needed(info)
 if info.group*256+info.number ~= current_map then
 current_item = 1
 current_map = info.group*256+info.number
+elseif info.objects[current_item] == nil then
+current_item = 1
 end
 end
 
@@ -482,6 +643,24 @@ if current_item == 0  or current_item > #info.objects then
 current_item = #info.objects
 end
 read_current_item()
+end
+
+function set_pathfind_switch()
+	pathfind_switch = not pathfind_switch
+
+	if pathfind_switch then
+		tolk.output("enable special skils.")
+		inpassible_tiles[18] = false
+		inpassible_tiles[36] = false
+		inpassible_tiles[41] = false
+		inpassible_tiles[51] = false
+	else
+		tolk.output("disable special skils.")
+		inpassible_tiles[18] = true
+		inpassible_tiles[36] = true
+		inpassible_tiles[41] = true
+		inpassible_tiles[51] = true
+	end
 end
 
 function pathfind()
@@ -692,9 +871,15 @@ inpassible_tiles = {
 [7]=true;
 [18] = true;
 [21] = true;
-[41] = true;
+[38] = true;
+[39] = true;
+[41] = false;
+[51] = false;
+[144]=true;
 [145]=true;
 [149] = true;
+[163] = false;
+[165] = false;
 [178] = true;
 }
 
@@ -746,6 +931,7 @@ end
 function read_menu_item(lines, pos)
 local line = math.floor(pos/20)+1
 local l = lines[line]
+audio.play(scriptpath .. "sounds\\menusel.wav", 0, (200 * (line - 1) / #lines) - 100, 30)
 tolk.output(l)
 if lines[line+1]:match('\xc2\xa5') then
 tolk.output(lines[line+1])
@@ -912,15 +1098,26 @@ return code
 end
 
 commands = {
-[{"C"}] = {read_coords, true};
+[{"Y"}] = {read_coords, true};
 [{"J"}] = {read_previous_item, true};
 [{"K"}] = {read_current_item, true};
 [{"L"}] = {read_next_item, true};
 [{"P"}] = {pathfind, true};
-[{"N"}] = {rename_current, true};
+[{"P", "shift"}] = {set_pathfind_switch, true};
 [{"T"}] = {read_text, false};
-[{"N", "shift"}] = {rename_map, true};
-[{"M", "shift"}] = {read_mapname, true};
+[{"R"}] = {read_tiles, true};
+[{"M"}] = {read_mapname, true};
+[{"K", "shift"}] = {rename_current, true};
+[{"M", "shift"}] = {rename_map, true};
+[{"S"}] = {camera_move_left, true},
+[{"F"}] = {camera_move_right, true},
+[{"E"}] = {camera_move_up, true},
+[{"C"}] = {camera_move_down, true},
+[{"D"}] = {set_camera_default, true},
+[{"S", "shift"}] = {camera_move_left_ignore_wall, true},
+[{"F", "shift"}] = {camera_move_right_ignore_wall, true},
+[{"E", "shift"}] = {camera_move_up_ignore_wall, true},
+[{"C", "shift"}] = {camera_move_down_ignore_wall, true},
 [{"H"}] = {read_enemy_health, false},
 }
 
@@ -954,11 +1151,9 @@ if res == nil then language_names = {} end
 end
 memory.registerexec(RAM_FOOTSTEP_FUNCTION, function()
 local type = memory.readbyteunsigned(RAM_STANDING_TILE)
-if type == 0x18 then
-audio.play(scriptpath .. "sounds\\grass.wav", 0, 0, 30)
-else
-audio.play(scriptpath .. "sounds\\step.wav", 0, 0, 30)
-end
+camera_x = -1
+camera_y = -1
+play_tile_sound(type, 0, 30, false)
 end)
 
 in_options = false
