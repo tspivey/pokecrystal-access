@@ -200,15 +200,15 @@ end
 
 
 function find_path_to(obj)
+local impassable = impassable_tiles()
 local path
 local width = memory.readbyteunsigned(RAM_MAP_WIDTH)
 local height = memory.readbyteunsigned(RAM_MAP_HEIGHT)
-
 if obj.type == "connection" then
 if obj.direction == "north" then
 dest_y = 0
 for dest_x = 0, width*2-1 do
-if not inpassible_tiles[get_collision_data_xy(dest_x+4, dest_y+3)] then
+if not impassable[get_collision_data_xy(dest_x+4, dest_y+3)] then
 path = find_path_to_xy(dest_x, dest_y)
 end
 if path ~= nil then break end
@@ -216,7 +216,7 @@ end
 elseif obj.direction == "south" then
 dest_y = height*2-1
 for dest_x = 0, width*2-1 do
-if not inpassible_tiles[get_collision_data_xy(dest_x+4, dest_y+5)] then
+if not impassable[get_collision_data_xy(dest_x+4, dest_y+5)] then
 path = find_path_to_xy(dest_x, dest_y)
 end
 if path ~= nil then break end
@@ -224,7 +224,7 @@ end
 elseif obj.direction == "east" then
 dest_x = width*2-1
 for dest_y = 0, height*2-1 do
-if not inpassible_tiles[get_collision_data_xy(dest_x+5, dest_y+4)] then
+if not impassable[get_collision_data_xy(dest_x+5, dest_y+4)] then
 path = find_path_to_xy(dest_x, dest_y)
 end
 if path ~= nil then break end
@@ -232,7 +232,7 @@ end
 elseif obj.direction == "west" then
 dest_x = 0
 for dest_y = 0, height*2-1 do
-if not inpassible_tiles[get_collision_data_xy(dest_x+3, dest_y+4)] then
+if not impassable[get_collision_data_xy(dest_x+3, dest_y+4)] then
 path = find_path_to_xy(dest_x, dest_y)
 end
 if path ~= nil then break end
@@ -249,6 +249,7 @@ speak_path(clean_path(path))
 end
 
 function find_path_to_xy(dest_x, dest_y, search)
+local impassable = impassable_tiles()
 local player_x, player_y = get_player_xy()
 local collisions = get_map_collisions()
 local allnodes = {}
@@ -264,7 +265,7 @@ if warp.x ~= dest_x and warp.y ~= dest_y then
 collisions[warp.y][warp.x] = 7
 end
 end
-if inpassible_tiles[collisions[dest_y][dest_x]] then
+if impassable[collisions[dest_y][dest_x]] then
 local to_search = {
 {dest_y+1, dest_x};
 {dest_y-1, dest_x};
@@ -276,7 +277,7 @@ local to_search = {
 }
 if search then
 for i, pos in ipairs(to_search) do
-if collisions[pos[1]] ~= nil and collisions[pos[1]][pos[2]] ~= nil and not inpassible_tiles[collisions[pos[1]][pos[2]]] then
+if collisions[pos[1]] ~= nil and collisions[pos[1]][pos[2]] ~= nil and not impassable[collisions[pos[1]][pos[2]]] then
 dest_y = pos[1]
 dest_x = pos[2]
 break
@@ -310,7 +311,7 @@ elseif node.type == 0xa3 and neighbor.x == node.x and neighbor.y == node.y+2 the
 return true
 elseif astar.dist_between(node, neighbor) ~= 1 then
 return false
-elseif inpassible_tiles[neighbor.type] then
+elseif impassable[neighbor.type] then
 return false
 end
 return true
@@ -547,13 +548,7 @@ end
 memory.registerexec(RAM_FOOTSTEP_FUNCTION, function()
 announce_tiles()
 local type = memory.readbyteunsigned(RAM_STANDING_TILE)
-	if type == 0x14 or type == 0x18 then
-audio.play(scriptpath .. "sounds\\grass.wav", 0, 0, 30)
-elseif type == 0x29 then
-audio.play(scriptpath .. "sounds\\ocean.wav", 0, 0, 30)
-else
-audio.play(scriptpath .. "sounds\\step.wav", 0, 0, 30)
-end
+tile_sound(type)
 end)
 
 in_options = false
@@ -591,7 +586,6 @@ outer_text = screen:get_outer_menu_text()
 if not in_options and last_outer_text ~= outer_text then
 -- probably a different menu, mom's questions cause this
 if outer_text ~= "" then
-audio.play(scriptpath .. "sounds\\menusel.wav", 0, (200 * (line - 1) / #lines) - 100, 30)
 tolk.output(outer_text)
 end
 last_outer_text = outer_text
@@ -608,5 +602,4 @@ read_text(true)
 end
 want_read = false
 end
-
 end
