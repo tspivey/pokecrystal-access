@@ -12,7 +12,9 @@ tiles = {
 [41] = {name="water", type="terrain", object=false, passable=false, mod_passable=false};
 [51] = {name="waterfall", type="terrain", object=false, passable=false, mod_passable=false};
 [113] = {name="door", type="terrain", object=false, passable=false, mod_passable=false};
+[118] = {name="gate", type="terrain", object=false, passable=true, mod_passable=true};
 [122] = {name="stairs", type="terrain", object=false, passable=false, mod_passable=false};
+[126] = {name="gate", type="terrain", object=false, passable=true, mod_passable=true};
 [144] = {name="counter", type="terrain", object=false, passable=false, mod_passable=false};
 [145] = {name="PokéMon Friend PokéMon Magazine", type="terrain", object=false, passable=false, mod_passable=false};
 [147] = {name="pc", type="object", object=true, passable=false, mod_passable=false};
@@ -69,6 +71,9 @@ return nil
 end
 
 function tile_sound(id)
-print(tile_name(id))
-audio.play(scriptpath .. "sounds\\"..tile_name(id)..".wav", 0, 0, 30)
+test = audio.play(scriptpath .. "sounds\\"..tile_name(id)..".wav", 0, 0, 30)
+if test == 0 then
+audio.play(scriptpath .. "sounds\\open.wav", 0, 0, 30)
+end
+print(type(test))
 end
