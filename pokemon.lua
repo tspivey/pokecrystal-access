@@ -393,6 +393,7 @@ end
 function read_menu_item(lines, pos)
 local line = math.floor(pos/20)+1
 local l = lines[line]
+audio.play(scriptpath .. "sounds\\menusel.wav", 0, (200 * (line - 1) / #lines) - 100, 30)
 tolk.output(l)
 if lines[line+1]:match('\xc2\xa5') then
 tolk.output(lines[line+1])
@@ -546,7 +547,7 @@ end
 memory.registerexec(RAM_FOOTSTEP_FUNCTION, function()
 announce_tiles()
 local type = memory.readbyteunsigned(RAM_STANDING_TILE)
-if type == 0x18 then
+	if type == 0x14 or type == 0x18 then
 audio.play(scriptpath .. "sounds\\grass.wav", 0, 0, 30)
 elseif type == 0x29 then
 audio.play(scriptpath .. "sounds\\ocean.wav", 0, 0, 30)
@@ -590,6 +591,7 @@ outer_text = screen:get_outer_menu_text()
 if not in_options and last_outer_text ~= outer_text then
 -- probably a different menu, mom's questions cause this
 if outer_text ~= "" then
+audio.play(scriptpath .. "sounds\\menusel.wav", 0, (200 * (line - 1) / #lines) - 100, 30)
 tolk.output(outer_text)
 end
 last_outer_text = outer_text
