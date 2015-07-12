@@ -21,7 +21,7 @@ tiles = {
 [39] = {name="obstacle", type="terrain", object=true};
 [51] = {name="waterfall", type="terrain", object=false};
 [113] = {name="door", type="terrain", object=false};
-[122] = {name="stairs", type="terrain", object=false}
+[122] = {name="stairs", type="terrain", object=false};
 [144] = {name="counter", type="terrain", object=false};
 [145] = {name="PokéMon Friend PokéMon Magazine", type="terrain", object=false};
 [147] = {name="pc", type="object", object=true};
