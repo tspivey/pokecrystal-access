@@ -25,12 +25,34 @@ From there, load pokemon.lua, press run. It should say ready, alt tab out and ba
 ##Keys
 Make sure num lock is off while playing the game, or the keys won't work.
 
+* Standard gameBoy keys: z/x are a/b, enter/backspace start/select and arrows.
 * j, k and l - previous, current and next item
-* shift m - read current map name
-* shift n - rename current map
-* n - rename current item
+* shift k - rename current item
+* m - read current map name
+* shift M - rename current map
 * t - read text on screen, if any
 * p - pathfind. This tries to find a path between you and the object selected, or as close as it can get.
-* c - read coordinates
+* Shift + P - Toggle special skils when using pathfind. For example surf
+* y - read current position
 * h - read enemy health if in a battle
+* r - read the surrounding tiles
 
+###Camera
+* s - move the camera left, stopping at walls
+* f - move the camera right, stopping at walls
+* e - move the camera up, stopping at walls
+* c - move the camera down, stopping at walls
+* d - move the camera to the player's position
+* add shift to s/f/e/c to move the camera, ignoring walls
+
+##Notes
+Non-english roms are supported. These include: French, German, Italian, Japanese and Spanish.
+
+##Contact information
+If you find a bug, or want to contact me about these scripts, my contact information is below.
+for bugs, please send a save state with instructions on how to reproduce the issue from it. You can save a named one with control shift s in the game.
+
+Project homepage: http://allinaccess.com/pca/
+Author Email: Tyler Spivey <tspivey@pcdesk.net>
+Twitter: @tspivey
+Source code: https://github.com/tspivey/pokecrystal-access
