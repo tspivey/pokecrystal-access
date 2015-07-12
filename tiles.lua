@@ -23,6 +23,7 @@ tiles = {
 [157] = {name="mirror image", type="terrain", object=false, passable=false, mod_passable=false};
 [159] = {name="incense", type="terrain", object=false, passable=false, mod_passable=false};
 [178] = {name="obstacle", type="terrain", object=false, passable=false, mod_passable=false};
+[255] = {name="map boundary", type="terrain", object=false, passable=false, mod_passable=false};
 }
 
 --Returns whether a tile can be passed through or not.
@@ -43,7 +44,6 @@ end
 end
 return temp
 end
-
 
 function tile_name(id)
 if tiles[id] then
