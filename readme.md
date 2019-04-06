@@ -15,14 +15,14 @@ http://vba-rerecording.googlecode.com/files/vba-v24m-svn-r480.7z
 Without this, NVDA reads the title bar every time it changes.
 1. Optional but recommended: turn down the sound. In the Options menu, navigate to Audio, Volume (alt o, a, v)
 
-##Starting the game
+## Starting the game
 Each time you run VBA, you'll need to load the rom.
 You can do this from the open dialog, or load a recent rom after you've opened it once.
 
 Once the rom is loaded, load the lua script (tools, lua, New Lua script window).
 From there, load pokemon.lua, press run. It should say ready, alt tab out and back in again
 
-##Keys
+## Keys
 Make sure num lock is off while playing the game, or the keys won't work.
 
 * Standard gameBoy keys: z/x are a/b, enter/backspace start/select and arrows.
@@ -37,7 +37,7 @@ Make sure num lock is off while playing the game, or the keys won't work.
 * h - read enemy health if in a battle
 * r - read the surrounding tiles
 
-###Camera
+### Camera
 * s - move the camera left, stopping at walls
 * f - move the camera right, stopping at walls
 * e - move the camera up, stopping at walls
@@ -45,10 +45,10 @@ Make sure num lock is off while playing the game, or the keys won't work.
 * d - move the camera to the player's position
 * add shift to s/f/e/c to move the camera, ignoring walls
 
-##Notes
+## Notes
 Non-english roms are supported. These include: French, German, Italian, Japanese and Spanish.
 
-##Contact information
+## Contact information
 If you find a bug, or want to contact me about these scripts, my contact information is below.
 for bugs, please send a save state with instructions on how to reproduce the issue from it. You can save a named one with control shift s in the game.
 
