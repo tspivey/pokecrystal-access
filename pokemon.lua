@@ -1,6 +1,8 @@
+module ( "pokemon", package.seeall )
 require "a-star"
+require "strlib"
 serpent = require "serpent"
-local inputbox = require "Inputbox"
+local inputbox = require "inputbox"
 scriptpath = debug.getinfo(1, "S").source:sub(2):match("^.*\\")
 EAST = 1
 WEST = 2
@@ -138,10 +140,6 @@ tolk.output(line)
 end
 end
 end -- output_lines
-
-function trim(s)
-return s:gsub("^%s*(.-)%s*$", "%1")
-end
 
 function parse_menu_header()
 local ptr = RAM_MENU_HEADER
