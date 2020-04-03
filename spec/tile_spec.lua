@@ -1,0 +1,10 @@
+describe("Tiles", function()
+  it("should have sounds", function()
+    local thing = require("tile")
+    spy.on(thing, "get_tile_sound")
+    thing.get_tile_sound(0x0, false)
+
+    assert.spy(thing.get_tile_sound).was.called()
+    assert.spy(thing.get_tile_sound).was.called_with(0x0, false)
+  end)
+end)
