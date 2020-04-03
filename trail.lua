@@ -85,7 +85,7 @@ else -- left is none
 end -- Check left tile
 
 -- Check right tile
-if player_x < #collisions then
+if player_x < #collisions[1] then
 	s = s .. string.format(", Right %d", collisions[player_y][player_x + 1])
 else -- right is none
 	s = s .. ", Right none"
