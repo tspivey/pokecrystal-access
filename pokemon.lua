@@ -380,6 +380,7 @@ end
 
 -- Playback tile sounds
 function play_tile_sound(type, pan, vol, play_stair)
+  log.debug(string.format("playing sound for tile 0x%X", type))
 	audio.play(scriptpath .. tile.get_tile_sound(type, play_stair), 0, pan, vol)
 end
 

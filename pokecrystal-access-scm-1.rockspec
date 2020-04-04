@@ -32,7 +32,7 @@ build = {
       ["lang.ja.fonts"] = "lang/ja/fonts.lua",
       ["lang.ja.ram"] = "lang/ja/ram.lua",
       ["lang.ja.sprites"] = "lang/ja/sprites.lua",
-      pokemon = "pokemon.lua",
+      ["rxi-json-lua"] = "log.lua",
       serpent = "serpent.lua",
       tolk = "tolk.lua"
    }
