@@ -1,10 +1,13 @@
 require "a-star"
 require "guide"
+local log = require "log"
 require "name"
 require "strlib"
 require "tile"
 require "trail"
 local inputbox = require "inputbox"
+log.usecolor = false
+log.level = "info"
 scriptpath = debug.getinfo(1, "S").source:sub(2):match("^.*\\")
 EAST = 1
 WEST = 2
