@@ -179,6 +179,7 @@ end
 
 function read_coords()
 local x, y = get_player_xy()
+log.debug("Player coordinates x = " .. x .. ", y = " .. y)
 tolk.output("x " .. x .. ", y " .. y)
 end
 
@@ -322,6 +323,7 @@ end
 
 function get_map_name(mapid)
 if names[mapid] ~= nil and names[mapid]["map"] ~= nil then
+log.debug("Map name " .. names[mapid]["map"])
 return names[mapid]["map"]
 elseif language_names[mapid] ~= nil and language_names[mapid].map ~= nil then
 return language_names[mapid].map
@@ -375,14 +377,14 @@ end
 function read_tiles()
 local player_x, player_y = get_player_xy()
 local collisions = get_map_collisions()
-local s = route(player_y, player_x, collisions)
+local s = trail.route(player_y, player_x, collisions)
 
 tolk.output(s)
 end
 
 -- Playback tile sounds
 function play_tile_sound(type, pan, vol, play_stair)
-  log.debug(string.format("playing sound for tile 0x%X", type))
+	log.debug(string.format("playing sound for tile 0x%X", type))
 	audio.play(scriptpath .. tile.get_tile_sound(type, play_stair), 0, pan, vol)
 end
 
@@ -432,6 +434,7 @@ function camera_move(y, x, ignore_wall)
 			end -- obj.xy
 		end -- for
 
+		log.debug(string.format("camera moving to tile 0x%X", collisions[camera_y][camera_x]))
 		if inpassible_tiles[collisions[camera_y][camera_x]] then
 			if ignore_wall then
 				camera_x = camera_x - x
@@ -443,6 +446,7 @@ function camera_move(y, x, ignore_wall)
 			play_tile_sound(collisions[camera_y][camera_x], pan, vol, true)
 		end
 	else
+		log.debug("camera moving to map edge")
 		camera_x = camera_x - x
 		camera_y = camera_y - y
 		audio.play(scriptpath .. "sounds\\s_wall.wav", 0, pan, vol)
@@ -580,12 +584,14 @@ function set_pathfind_switch()
 		inpassible_tiles[36] = false
 		inpassible_tiles[41] = false
 		inpassible_tiles[51] = false
+		inpassible_tiles[144] = false
 	else
 		tolk.output("disable special skils.")
 		inpassible_tiles[18] = true
 		inpassible_tiles[36] = true
 		inpassible_tiles[41] = true
 		inpassible_tiles[51] = true
+		inpassible_tiles[144] = true
 	end
 end
 
@@ -601,11 +607,12 @@ local x, y = get_player_xy()
 local map_id = get_map_id()
 local s = get_name(mapid, item)
 if item.x then
-s = s .. ": " .. distance(x, y, item.x, item.y)
+s = s .. ": " .. trail.distance(x, y, item.x, item.y)
 end
 if item.facing then
 s = s .. " facing " .. facing_to_string(item.facing)
 end
+log.debug("Reading item " .. s)
 tolk.output(s)
 end
 
@@ -663,13 +670,17 @@ local player_x, player_y = get_player_xy()
 local collisions = get_map_collisions()
 local objects = get_objects()
 local warps = get_warps()
-path = find_path_to(obj, width, height, player_x, player_y, collisions, objects, warps, inpassible_tiles)
+path = guide.find_path_to(obj, width, height, player_x, player_y, collisions, objects, warps, inpassible_tiles)
 
+local map_id = get_map_id()
+local s = get_name(mapid, obj)
 if path == nil then
+log.debug("No path to " .. s)
 tolk.output("no path")
 return
 end
-speak_path(clean_path(path))
+log.debug("Path to " .. s)
+speak_path(trail.clean_path(path))
 end
 
 function speak_path(path)
@@ -700,6 +711,7 @@ local info = get_map_info()
 reset_current_item_if_needed(info)
 local id = get_map_id()
 local obj_id = info.objects[current_item].id
+log.debug("Rename object " .. info.objects[current_item].name)
 name = inputbox.inputbox("Name object", "Enter a new name for " .. info.objects[current_item].name, info.objects[current_item].name)
 if name == nil then
 return
@@ -720,7 +732,8 @@ end
 function rename_map()
 local id = get_map_id()
 local obj_id = "map"
-name = inputbox.inputbox("Rename map", "Enter a new name for " .. names[id][obj_id], names[id][obj_id])
+log.debug("Rename map " .. default_names[id][obj_id])
+name = inputbox.inputbox("Rename map", "Enter a new name for " .. default_names[id][obj_id], default_names[id][obj_id])
 if name == nil then
 return
 end
@@ -735,6 +748,7 @@ end
 
 function read_mapname()
 local name = get_map_name(get_map_id())
+log.debug("Map name " .. name)
 tolk.output(name)
 end
 
@@ -742,11 +756,14 @@ function read_menu_item(lines, pos)
 local line = math.floor(pos/20)+1
 local l = lines[line]
 audio.play(scriptpath .. "sounds\\menusel.wav", 0, (200 * (line - 1) / #lines) - 100, 30)
+log.debug("Item name " .. l)
 tolk.output(l)
 if lines[line+1]:match('\xc2\xa5') then
+log.debug("Item C2A5 " .. lines[line+1])
 tolk.output(lines[line+1])
 end
 if in_options and not lines[line+1]:match("^%s*$") then
+log.debug("Option name " .. lines[line+1])
 tolk.output(lines[line+1])
 end
 end
