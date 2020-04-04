@@ -380,27 +380,7 @@ end
 
 -- Playback tile sounds
 function play_tile_sound(type, pan, vol, play_stair)
-	if type == 0x14 or type == 0x18 then
-		audio.play(scriptpath .. "sounds\\s_grass.wav", 0, pan, vol)
-	elseif type == 0x12 then
-		audio.play(scriptpath .. "sounds\\s_cut.wav", 0, pan, vol)
-	elseif type == 0x23 then
-		audio.play(scriptpath .. "sounds\\s_ice.wav", 0, pan, vol)
-	elseif type == 0x24 then
-		audio.play(scriptpath .. "sounds\\s_whirl.wav", 0, pan, vol)
-	elseif type == 0x29 then
-		audio.play(scriptpath .. "sounds\\s_water.wav", 0, pan, vol)
-	elseif type == 0x33 then
-		audio.play(scriptpath .. "sounds\\s_waterfall.wav", 0, pan, vol)
-	elseif type > 0xA0 then
-		audio.play(scriptpath .. "sounds\\s_mad.wav", 0, pan, vol)
-	elseif play_stair and (type == 0x71 or type == 0x72 or type == 0x76 or type == 0x7B) then
-		audio.play(scriptpath .. "sounds\\s_stair.wav", 0, pan, vol)
-	elseif play_stair and type == 0x60 then
-		audio.play(scriptpath .. "sounds\\s_hole.wav", 0, pan, vol)
-	else
-		audio.play(scriptpath .. "sounds\\s_default.wav", 0, pan, vol)
-	end -- switch tile type
+	audio.play(scriptpath .. tile.get_tile_sound(type, play_stair), 0, pan, vol)
 end
 
 -- reset camera focus when camera_xy equal -1
