@@ -1,4 +1,4 @@
-module ( "pokemon", package.seeall )
+require "a-star"
 require "guide"
 require "strlib"
 require "tile"
@@ -109,7 +109,7 @@ last_textbox_text = nil
 function read_text(auto)
 local lines = get_screen().lines
 if auto then
-if trim(lines[15]) == trim(last17) then
+if strlib.trim(lines[15]) == strlib.trim(last17) then
 lines[15] = ""
 end
 last17 = lines[17]
@@ -130,13 +130,13 @@ end
 
 function should_read_textbox()
 if (screen.tile_lines[3]:match("\x60\x61") or screen.tile_lines[10]:match("\x60\x61")) then return true end
-if trim(screen.lines[15]) == MSG_HOW_MANY then return true end
+if strlib.trim(screen.lines[15]) == MSG_HOW_MANY then return true end
 return false
 end
 
 function output_lines(lines)
 for i, line in pairs(lines) do
-line = trim(line)
+line = strlib.trim(line)
 if line ~= "" then
 tolk.output(line)
 end
@@ -158,14 +158,14 @@ end
 function get_outer_menu_text(screen)
 local textbox = screen:get_textbox()
 if textbox then
-return trim(table.concat(textbox, " "))
+return strlib.trim(table.concat(textbox, " "))
 end
 local header = parse_menu_header()
 local lines = get_screen().lines
 local s = ""
 for i = header.end_y+1, 18 do
-local line = trim(lines[i])
-if i == 15 and line == trim(last17) then
+local line = strlib.trim(lines[i])
+if i == 15 and line == strlib.trim(last17) then
 line = ""
 end
 if line ~= "" then
@@ -380,7 +380,27 @@ end
 
 -- Playback tile sounds
 function play_tile_sound(type, pan, vol, play_stair)
-	audio.play(scriptpath .. get_tile_sound(type, play_stair), 0, pan, vol)
+	if type == 0x14 or type == 0x18 then
+		audio.play(scriptpath .. "sounds\\s_grass.wav", 0, pan, vol)
+	elseif type == 0x12 then
+		audio.play(scriptpath .. "sounds\\s_cut.wav", 0, pan, vol)
+	elseif type == 0x23 then
+		audio.play(scriptpath .. "sounds\\s_ice.wav", 0, pan, vol)
+	elseif type == 0x24 then
+		audio.play(scriptpath .. "sounds\\s_whirl.wav", 0, pan, vol)
+	elseif type == 0x29 then
+		audio.play(scriptpath .. "sounds\\s_water.wav", 0, pan, vol)
+	elseif type == 0x33 then
+		audio.play(scriptpath .. "sounds\\s_waterfall.wav", 0, pan, vol)
+	elseif type > 0xA0 then
+		audio.play(scriptpath .. "sounds\\s_mad.wav", 0, pan, vol)
+	elseif play_stair and (type == 0x71 or type == 0x72 or type == 0x76 or type == 0x7B) then
+		audio.play(scriptpath .. "sounds\\s_stair.wav", 0, pan, vol)
+	elseif play_stair and type == 0x60 then
+		audio.play(scriptpath .. "sounds\\s_hole.wav", 0, pan, vol)
+	else
+		audio.play(scriptpath .. "sounds\\s_default.wav", 0, pan, vol)
+	end -- switch tile type
 end
 
 -- reset camera focus when camera_xy equal -1
@@ -702,8 +722,8 @@ if name == nil then
 return
 end
 names[id] = names[id] or {}
-if trim(name) ~= "" then
-names[id][obj_id] = trim(name)
+if strlib.trim(name) ~= "" then
+names[id][obj_id] = strlib.trim(name)
 else
 names[id][obj_id] = nil
 end
@@ -724,8 +744,8 @@ if name == nil then
 return
 end
 names[id] = names[id] or {}
-if trim(name) ~= "" then
-names[id][obj_id] = trim(name)
+if strlib.trim(name) ~= "" then
+names[id][obj_id] = strlib.trim(name)
 else
 names[id][obj_id] = nil
 end
