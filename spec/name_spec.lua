@@ -1,0 +1,8 @@
+describe("Name", function()
+  local name = require("name")
+  name.write_table("names.lua", {})
+  it("should load", function()
+    assert.are.equal(nil, name.load_table("names.lua"))
+  end)
+  os.remove("names.lua")
+end)

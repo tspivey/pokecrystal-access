@@ -1,9 +1,9 @@
 require "a-star"
 require "guide"
+require "name"
 require "strlib"
 require "tile"
 require "trail"
-serpent = require "serpent"
 local inputbox = require "inputbox"
 scriptpath = debug.getinfo(1, "S").source:sub(2):match("^.*\\")
 EAST = 1
@@ -39,15 +39,12 @@ return false
 end
 end
 
-function load_table(file)
-local res, t
-fp = io.open(file, "rb")
-if fp ~= nil then
-local data = fp:read("*all")
-res, t = serpent.load(data)
-io.close(fp)
+function load_names()
+local res, names = name.load_table("names.lua")
+if res == nil then
+names = {}
 end
-return res, t
+return names
 end
 
 function translate(char, above)
@@ -712,9 +709,7 @@ write_names()
 end
 
 function write_names()
-local file = io.open("names.lua", "wb")
-file:write(serpent.block(names, {comment=false}))
-io.close(file)
+name.write_table("names.lua", names)
 tolk.output("names saved")
 end
 function rename_map()
@@ -915,11 +910,8 @@ commands = {
 tolk = require "tolk"
 assert(package.loadlib("audio.dll", "luaopen_audio"))()
 tolk.output("ready")
-res, names = load_table("names.lua")
-if res == nil then
-names = {}
-end
-res, default_names = load_table(scriptpath .. "\\lang\\en\\" .. "default_names.lua")
+names = load_names()
+res, default_names = name.load_table(scriptpath .. "\\lang\\en\\" .. "default_names.lua")
 if res == nil then
 tolk.output("Unable to load default names file.")
 default_names = {}
@@ -937,7 +929,7 @@ local codemap = {
 if codemap[code] then
 load_language(codemap[code])
 language = codemap[code]
-res, language_names = load_table(scriptpath .. "\\lang\\" .. codemap[code] .. "\\default_names.lua")
+res, language_names = name.load_table(scriptpath .. "\\lang\\" .. codemap[code] .. "\\default_names.lua")
 if res == nil then language_names = {} end
 end
 memory.registerexec(RAM_FOOTSTEP_FUNCTION, function()
