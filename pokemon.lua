@@ -107,6 +107,7 @@ function read_text(auto)
 local lines = get_screen().lines
 if auto then
 if strlib.trim(lines[15]) == strlib.trim(last17) then
+log.debug("Repeated last17 " .. lines[15])
 lines[15] = ""
 end
 last17 = lines[17]
@@ -163,6 +164,7 @@ local s = ""
 for i = header.end_y+1, 18 do
 local line = strlib.trim(lines[i])
 if i == 15 and line == strlib.trim(last17) then
+log.debug("Repeated last17 " .. line)
 line = ""
 end
 if line ~= "" then
