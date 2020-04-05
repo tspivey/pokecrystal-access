@@ -39,7 +39,17 @@ if path ~= nil then break end
 end
 end
 else
-path = find_path_to_xy(obj.x, obj.y, true, player_x, player_y, collisions, objects, warps, inpassible_tiles)
+if obj.name == "clerk" then -- clerk facing right
+dest_x = obj.x+1
+else
+dest_x = obj.x
+end
+if obj.name == "nurse" then -- nurse facing down
+dest_y = obj.y+1
+else
+dest_y = obj.y
+end
+path = find_path_to_xy(dest_x, dest_y, true, player_x, player_y, collisions, objects, warps, inpassible_tiles)
 end
 return path
 end
