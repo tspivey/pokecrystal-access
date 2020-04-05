@@ -584,14 +584,12 @@ function set_pathfind_switch()
 		inpassible_tiles[36] = false
 		inpassible_tiles[41] = false
 		inpassible_tiles[51] = false
-		inpassible_tiles[144] = false
 	else
 		tolk.output("disable special skils.")
 		inpassible_tiles[18] = true
 		inpassible_tiles[36] = true
 		inpassible_tiles[41] = true
 		inpassible_tiles[51] = true
-		inpassible_tiles[144] = true
 	end
 end
 
@@ -676,16 +674,18 @@ local map_id = get_map_id()
 local s = get_name(mapid, obj)
 if path == nil then
 log.debug("No path to " .. s)
-tolk.output("no path")
-return
-end
+tolk.output("no path to " .. s)
+else
 log.debug("Path to " .. s)
-speak_path(trail.clean_path(path))
+new_path = trail.clean_path(path)
+s = ""
+for _, v in ipairs(new_path) do
+s = s .. v[2] .. " " .. v[1] .. " "
 end
-
-function speak_path(path)
-for _, v in ipairs(path) do
-tolk.output(v[2] .. " " .. v[1])
+if (obj.name == "clerk" or obj.name == "nurse") then
+s = s .. "face " .. face_to_string(obj.facing)
+end
+tolk.output(s)
 end
 end -- function
 
@@ -890,6 +890,15 @@ if d == 0 then return "down" end
 if d == 1 then return "up" end
 if d == 2 then return "left" end
 if d == 3 then return "right" end
+return "unknown"
+end
+
+function face_to_string(d)
+d = bit.rshift(d, 2)
+if d == 0 then return "up" end
+if d == 1 then return "down" end
+if d == 2 then return "rigbt" end
+if d == 3 then return "left" end
 return "unknown"
 end
 
